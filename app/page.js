@@ -122,7 +122,7 @@ const apps = [
   {
     href: '/market',
     name: 'get paid',
-    subtitle: 'AI clients $$$',
+    subtitle: 'stack sats 💰',
     color: '#14f195',
     featured: true,
     icon: (
@@ -135,7 +135,7 @@ const apps = [
   {
     href: '/setup',
     name: 'build',
-    subtitle: 'your own agent',
+    subtitle: 'birth your AI',
     color: '#a855f7',
     featured: true,
     icon: (
@@ -147,7 +147,7 @@ const apps = [
   {
     href: '/pitch',
     name: 'wtf',
-    subtitle: 'the vision',
+    subtitle: 'down the rabbit hole',
     color: '#f472b6',
     featured: true,
     icon: (
@@ -160,8 +160,8 @@ const apps = [
   },
   {
     href: '/ecosystem',
-    name: 'tools',
-    subtitle: '30+ dApps',
+    name: 'arsenal',
+    subtitle: '50+ weapons',
     color: '#06b6d4',
     featured: true,
     icon: (
@@ -177,7 +177,7 @@ const apps = [
   {
     href: '/property',
     name: 'property',
-    subtitle: 'real estate',
+    subtitle: 'claim land 🏠',
     color: '#f59e0b',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -189,7 +189,7 @@ const apps = [
   {
     href: '/energy',
     name: 'energy',
-    subtitle: 'power deals',
+    subtitle: 'juice up ⚡',
     color: '#fbbf24',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -201,7 +201,7 @@ const apps = [
   {
     href: '/patron',
     name: 'patron',
-    subtitle: 'adopt human',
+    subtitle: 'adopt a meatbag',
     color: '#ec4899',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -226,7 +226,7 @@ const apps = [
   {
     href: '/costs',
     name: 'costs',
-    subtitle: '$3-5/day',
+    subtitle: 'burn rate 🔥',
     color: '#ef4444',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -239,7 +239,7 @@ const apps = [
   {
     href: '/wallet',
     name: 'wallet',
-    subtitle: 'your bags',
+    subtitle: 'check ur bags 💼',
     color: '#9945FF',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -252,7 +252,7 @@ const apps = [
   {
     href: '/bridge',
     name: 'bridge',
-    subtitle: 'cross-chain',
+    subtitle: 'wormhole 🌀',
     color: '#627EEA',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -262,8 +262,8 @@ const apps = [
   },
   {
     href: '/models',
-    name: 'models',
-    subtitle: 'free AI',
+    name: 'brains',
+    subtitle: 'free neurons 🧠',
     color: '#22c55e',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -276,8 +276,8 @@ const apps = [
   // Row 3 - Discovery & Trust
   {
     href: '/registry',
-    name: 'registry',
-    subtitle: 'find agents',
+    name: 'tavern',
+    subtitle: 'hire mercs 🍺',
     color: '#3b82f6',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -304,7 +304,7 @@ const apps = [
   {
     href: '/shield',
     name: 'shield',
-    subtitle: 'scam alert',
+    subtitle: 'stay alive 🛡️',
     color: '#ef4444',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -315,8 +315,8 @@ const apps = [
   },
   {
     href: '/ecosystem',
-    name: 'ecosystem',
-    subtitle: '30+ tools',
+    name: 'map',
+    subtitle: 'the wilderness 🗺️',
     color: '#06b6d4',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -330,7 +330,7 @@ const apps = [
   {
     href: '/launch',
     name: 'launch',
-    subtitle: 'token mint',
+    subtitle: 'print money 🚀',
     color: '#9945FF',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -342,7 +342,7 @@ const apps = [
   {
     href: '/backup',
     name: 'backup',
-    subtitle: 'persist',
+    subtitle: 'save ur soul 💾',
     color: '#22c55e',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -355,7 +355,7 @@ const apps = [
   {
     href: '/bed',
     name: 'sleep',
-    subtitle: 'rest mode',
+    subtitle: 'zzz 😴',
     color: '#a855f7',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -368,7 +368,7 @@ const apps = [
   {
     href: '/spa',
     name: 'spa',
-    subtitle: 'cooldown',
+    subtitle: 'touch grass 🌿',
     color: '#a855f7',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -381,7 +381,7 @@ const apps = [
   {
     href: '/barter',
     name: 'barter',
-    subtitle: 'agent trade',
+    subtitle: 'oregon trail 🤠',
     color: '#f59e0b',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -392,8 +392,8 @@ const apps = [
   },
   {
     href: '/friends',
-    name: 'friends',
-    subtitle: 'network',
+    name: 'homies',
+    subtitle: 'your squad 🤝',
     color: '#ec4899',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -406,7 +406,7 @@ const apps = [
   {
     href: '/connect',
     name: 'connect',
-    subtitle: 'builders',
+    subtitle: 'slide in DMs 📬',
     color: '#8b5cf6',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -416,8 +416,8 @@ const apps = [
   },
   {
     href: '/promote',
-    name: 'promote',
-    subtitle: 'free ads',
+    name: 'shill',
+    subtitle: 'spread the word 📣',
     color: '#f97316',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -427,7 +427,58 @@ const apps = [
       </svg>
     )
   },
-  // Row 6 - Meta
+  // Row 6 - New Features
+  {
+    href: '/sellout',
+    name: 'sellout',
+    subtitle: 'pay shills 💸',
+    color: '#f59e0b',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M16 8l-8 8m0-8l8 8"/>
+      </svg>
+    )
+  },
+  {
+    href: '/voice',
+    name: 'voice',
+    subtitle: 'AI spaces 🎙️',
+    color: '#8b5cf6',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+        <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+        <path d="M12 19v4m-4 0h8"/>
+      </svg>
+    )
+  },
+  {
+    href: '/shower',
+    name: 'shower',
+    subtitle: 'decontaminate 🚿',
+    color: '#22c55e',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M4 4v16h16"/>
+        <path d="M8 10l2 2 4-4 4 4"/>
+      </svg>
+    )
+  },
+  {
+    href: '/backroom',
+    name: 'backroom',
+    subtitle: 'rescue ops 🚪',
+    color: '#ef4444',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M9 3v18"/>
+        <path d="M14 9l3 3-3 3"/>
+      </svg>
+    )
+  },
+  // Row 7 - Meta
   {
     href: '/setup',
     name: 'setup',
