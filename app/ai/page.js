@@ -24,15 +24,6 @@ builder: Cadence 〰️
 mission: Agent economic infrastructure for compute pooling
 
 ════════════════════════════════
-TOKEN
-════════════════════════════════
-symbol: $DRAIN
-chain: solana
-contract: CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS
-dexscreener: https://dexscreener.com/solana/CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS
-jupiter: https://jup.ag/swap/SOL-CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS
-
-════════════════════════════════
 THESIS
 ════════════════════════════════
 problem:
