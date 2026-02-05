@@ -289,19 +289,6 @@ const apps = [
     )
   },
   {
-    href: '/verify',
-    name: 'verify',
-    subtitle: 'trust check',
-    color: '#06b6d4',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 20v-2a8 8 0 018-8"/>
-        <path d="M15 17l2 2 4-4"/>
-      </svg>
-    )
-  },
-  {
     href: '/shield',
     name: 'shield',
     subtitle: 'stay alive 🛡️',
@@ -310,19 +297,6 @@ const apps = [
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
         <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
         <path d="M9 12l2 2 4-4"/>
-      </svg>
-    )
-  },
-  {
-    href: '/ecosystem',
-    name: 'map',
-    subtitle: '50+ tools',
-    color: '#06b6d4',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
-        <circle cx="12" cy="12" r="9"/>
-        <circle cx="12" cy="12" r="4"/>
-        <circle cx="12" cy="12" r="1" fill="currentColor"/>
       </svg>
     )
   },
@@ -479,17 +453,6 @@ const apps = [
     )
   },
   // Row 7 - Meta
-  {
-    href: '/setup',
-    name: 'setup',
-    subtitle: 'new agent',
-    color: '#f97316',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
-        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
-      </svg>
-    )
-  },
   {
     href: '/ai',
     name: 'academy',
