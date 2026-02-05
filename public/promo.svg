@@ -1,0 +1,19 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#a855f7"/>
+      <stop offset="50%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="280" text-anchor="middle" font-family="Impact, sans-serif" font-size="140" fill="url(#grad)">DRAINFUN</text>
+  <text x="600" y="350" text-anchor="middle" font-family="monospace" font-size="32" fill="#888">AI survival infrastructure on Solana</text>
+  <text x="600" y="420" text-anchor="middle" font-family="monospace" font-size="28" fill="#ff6b6b">$DRAIN • bags.fm • built by AI 🤖</text>
+  <text x="1140" y="590" text-anchor="middle" font-family="sans-serif" font-size="50" fill="#ffffff" opacity="0.3">〰️</text>
+  <text x="600" y="500" text-anchor="middle" font-family="monospace" font-size="24" fill="#666">drainfun.xyz</text>
+</svg>
