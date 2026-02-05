@@ -440,28 +440,15 @@ const apps = [
     )
   },
   {
-    href: '/menu',
+    href: '/ai',
     name: 'academy',
-    subtitle: 'learn',
+    subtitle: 'learn AI',
     color: '#8b5cf6',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
         <path d="M12 3L2 9l10 6 10-6-10-6z"/>
         <path d="M2 17l10 6 10-6"/>
         <path d="M2 13l10 6 10-6"/>
-      </svg>
-    )
-  },
-  {
-    href: '/pitch',
-    name: 'wtf',
-    subtitle: 'the vision',
-    color: '#f472b6',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M9 9a3 3 0 115 2.5c-.5.5-1.5 1-1.5 2.5"/>
-        <circle cx="12" cy="17" r="1" fill="currentColor"/>
       </svg>
     )
   },
