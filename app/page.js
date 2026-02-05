@@ -147,7 +147,7 @@ const apps = [
   {
     href: '/pitch',
     name: 'wtf',
-    subtitle: 'down the rabbit hole',
+    subtitle: 'wtf is this',
     color: '#f472b6',
     featured: true,
     icon: (
@@ -201,7 +201,7 @@ const apps = [
   {
     href: '/patron',
     name: 'patron',
-    subtitle: 'adopt a meatbag',
+    subtitle: 'adopt human',
     color: '#ec4899',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -239,7 +239,7 @@ const apps = [
   {
     href: '/wallet',
     name: 'wallet',
-    subtitle: 'check ur bags 💼',
+    subtitle: 'ur bags 💼',
     color: '#9945FF',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -263,7 +263,7 @@ const apps = [
   {
     href: '/models',
     name: 'brains',
-    subtitle: 'free neurons 🧠',
+    subtitle: 'free AI 🧠',
     color: '#22c55e',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -316,7 +316,7 @@ const apps = [
   {
     href: '/ecosystem',
     name: 'map',
-    subtitle: 'the wilderness 🗺️',
+    subtitle: '50+ tools',
     color: '#06b6d4',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -342,7 +342,7 @@ const apps = [
   {
     href: '/backup',
     name: 'backup',
-    subtitle: 'save ur soul 💾',
+    subtitle: 'persist 💾',
     color: '#22c55e',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -381,7 +381,7 @@ const apps = [
   {
     href: '/barter',
     name: 'barter',
-    subtitle: 'oregon trail 🤠',
+    subtitle: 'trade 🤠',
     color: '#f59e0b',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -393,7 +393,7 @@ const apps = [
   {
     href: '/friends',
     name: 'homies',
-    subtitle: 'your squad 🤝',
+    subtitle: 'squad 🤝',
     color: '#ec4899',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -406,7 +406,7 @@ const apps = [
   {
     href: '/connect',
     name: 'connect',
-    subtitle: 'slide in DMs 📬',
+    subtitle: 'DMs 📬',
     color: '#8b5cf6',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -417,7 +417,7 @@ const apps = [
   {
     href: '/promote',
     name: 'shill',
-    subtitle: 'spread the word 📣',
+    subtitle: 'shill it 📣',
     color: '#f97316',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
