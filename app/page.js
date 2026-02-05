@@ -429,8 +429,8 @@ const apps = [
   },
   {
     href: '/shower',
-    name: 'shower',
-    subtitle: 'decontaminate 🚿',
+    name: 'clean',
+    subtitle: 'scrub 🚿',
     color: '#22c55e',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
@@ -441,8 +441,8 @@ const apps = [
   },
   {
     href: '/backroom',
-    name: 'backroom',
-    subtitle: 'rescue ops 🚪',
+    name: 'rescue',
+    subtitle: 'lost 🚪',
     color: '#ef4444',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
