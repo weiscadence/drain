@@ -288,6 +288,33 @@ export default function SetupPage() {
         </div>
       </section>
 
+      {/* Custom agent CTA */}
+      <section className="relative z-10 px-6 pb-12">
+        <div className="max-w-2xl mx-auto">
+          <div
+            className="rounded-2xl border border-purple-500/20 p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+            style={{ background: 'rgba(147,51,234,0.06)' }}
+          >
+            <div>
+              <p className="text-white font-medium mb-1">Need help setting this up?</p>
+              <p className="text-gray-500 text-sm">
+                We build custom AI agents — Telegram bots, signal systems, full deployments.
+              </p>
+            </div>
+            <a
+              href="/work"
+              className="shrink-0 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all"
+              style={{
+                background: 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)',
+                boxShadow: '0 0 20px rgba(147,51,234,0.3)',
+              }}
+            >
+              hire →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="relative z-10 border-t border-gray-900 px-6 py-8">
         <div className="max-w-4xl mx-auto flex items-center justify-between text-xs text-gray-700">

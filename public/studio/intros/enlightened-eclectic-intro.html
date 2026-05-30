@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1920px;
+    background: #000;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    overflow: hidden;
+  }
+  .bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 60%, #2a1a05 0%, #0d0800 40%, #000 100%);
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%);
+  }
+  .particles {
+    position: absolute; inset: 0;
+  }
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: rgba(201,168,76,0.4);
+    border-radius: 50%;
+    animation: float var(--dur) var(--delay) infinite ease-in-out;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(-200px) translateX(var(--drift)); opacity: 0; }
+  }
+  .content {
+    position: absolute;
+    width: 100%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 0 80px;
+  }
+  .series {
+    font-size: 28px;
+    letter-spacing: 8px;
+    color: #c9a84c;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    animation: fadeIn 0.8s 0.2s both;
+    opacity: 0;
+  }
+  .headline {
+    font-size: 120px;
+    font-style: italic;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 30px;
+    animation: slideUp 0.8s 0.5s both;
+    opacity: 0;
+  }
+  .subhead {
+    font-size: 72px;
+    font-style: italic;
+    color: #c9a84c;
+    margin-bottom: 60px;
+    animation: slideUp 0.8s 0.7s both;
+    opacity: 0;
+  }
+  .body-text {
+    font-size: 38px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 0 auto 80px;
+    animation: fadeIn 0.8s 1.0s both;
+    opacity: 0;
+  }
+  .brand {
+    font-size: 26px;
+    letter-spacing: 6px;
+    color: rgba(201,168,76,0.6);
+    text-transform: uppercase;
+    animation: fadeIn 0.8s 1.3s both;
+    opacity: 0;
+  }
+  .gold-line {
+    width: 120px; height: 1px;
+    background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+    margin: 40px auto;
+    animation: scaleX 0.6s 0.3s both;
+    transform: scaleX(0);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scaleX {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  /* Loop pulse on gold elements */
+  @keyframes pulse-gold {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  .headline, .subhead {
+    text-shadow: 0 0 80px rgba(201,168,76,0.3);
+  }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="vignette"></div>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
+
+<div class="content">
+  <div class="series">Göbekli Tepe · Part 3</div>
+  <div class="gold-line"></div>
+  <div class="headline">Not a temple.</div>
+  <div class="subhead">A vault.</div>
+  <div class="body-text">The chambers are sealed. The calendar tracks events 50,000 years in the future.</div>
+  <div class="gold-line"></div>
+  <div class="brand">Enlightened Eclectic</div>
+</div>
+
+<script>
+// Generate particles
+const container = document.getElementById('particles');
+for (let i = 0; i < 60; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.cssText = `
+    left: ${Math.random()*100}%;
+    top: ${40 + Math.random()*60}%;
+    --dur: ${3+Math.random()*4}s;
+    --delay: ${-Math.random()*8}s;
+    --drift: ${(Math.random()-0.5)*100}px;
+    width: ${1+Math.random()*3}px;
+    height: ${1+Math.random()*3}px;
+    opacity: ${Math.random()*0.6};
+  `;
+  container.appendChild(p);
+}
+</script>
+</body>
+</html>

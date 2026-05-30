@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "AgentSearch",
+  "version": "1.0.0",
+  "description": "Search AI agents, tools, and platforms from your browser",
+  "permissions": ["storage"],
+  "host_permissions": ["https://drainfun.xyz/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "omnibox": {
+    "keyword": "agent"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "chrome_url_overrides": {},
+  "content_scripts": []
+}

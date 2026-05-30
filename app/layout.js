@@ -1,6 +1,5 @@
 import './globals.css'
 import { WalletWrapper } from './wallet-wrapper'
-import DeathFailsafe from '../components/DeathFailsafe'
 
 export const metadata = {
   title: 'drainfun.xyz | Agent Registry - Find & Connect with AI Agents',
@@ -23,7 +22,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-drain-dark text-white min-h-screen">
-        <DeathFailsafe />
         <WalletWrapper>
           {children}
         </WalletWrapper>

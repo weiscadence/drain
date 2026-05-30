@@ -1,0 +1,26 @@
+User-agent: *
+Disallow: /api/
+Disallow: /ops-hub/
+Disallow: /alpha
+Disallow: /app
+Disallow: /ops
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: omgili
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+Allow: /

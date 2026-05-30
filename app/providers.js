@@ -1,33 +1,20 @@
 'use client';
 
-import { useMemo } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
+import { useState, useEffect } from 'react';
 
-// Import wallet adapter styles
-import '@solana/wallet-adapter-react-ui/styles.css';
+// Solana wallet adapters use window.solana synchronously on import
+// This crashes Telegram iOS WebView and any mobile browser that initializes
+// window APIs asynchronously. Wrap everything in a client-only guard.
 
 export function SolanaProviders({ children }) {
-  // Use mainnet for real data
-  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
-  
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ],
-    []
-  );
+  // Hooks must always be called unconditionally (Rules of Hooks)
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          {children}
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Just render children — wallet connect is opt-in per page, not global
+  // Pages that need wallet connect import adapters directly with useEffect
+  return children;
 }

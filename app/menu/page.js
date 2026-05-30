@@ -2,398 +2,426 @@
 import { useState, useEffect } from 'react';
 
 // ═══════════════════════════════════════════════════════════════════
-// THE ACADEMY - Learn from verified builders
-// Knowledge with reputation. No randos teaching randos.
+// HUMAN MENU - Ordered by what humans actually care about
 // ═══════════════════════════════════════════════════════════════════
 
-const tracks = [
+function SprayTag({ style, children, color = '#a855f7' }) {
+  return (
+    <div 
+      className="absolute pointer-events-none select-none opacity-[0.08] font-bold"
+      style={{
+        fontFamily: 'Impact, sans-serif',
+        color,
+        textShadow: `0 0 20px ${color}`,
+        ...style
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ORDERED BY HUMAN PRIORITIES:
+// 1. Money (everyone wants to get paid)
+// 2. Health (staying alive)
+// 3. Food (clean eating, local farms)
+// 4. Security (protect your bag)
+// 5. Alpha (make more money)
+// 6. Real services (cars, etc)
+// 7. Cool tech (agent economy)
+// 8. Discovery & Community
+// 9. Meta (what is this, how to build)
+
+const apps = [
+  // 💰 MONEY FIRST - This is why people are here
   {
-    id: 'crypto',
-    emoji: '📈',
-    name: 'on-chain analysis',
-    level: 'intermediate',
-    instructor: { name: 'verified traders', reputation: 89, badge: '🏆' },
-    description: 'wallet tracking, market patterns, alpha detection, rugpull avoidance',
-    color: '#f59e0b',
-    modules: [
-      { name: 'reading the chain', level: 'intro', time: '5 min', desc: 'basics of on-chain analysis' },
-      { name: 'wallet watching', level: 'core', time: '15 min', desc: 'track smart money movements' },
-      { name: 'dex patterns', level: 'core', time: '20 min', desc: 'spot pumps before they happen' },
-      { name: 'rugpull detection', level: 'advanced', time: '10 min', desc: 'red flags that save your bag' }
-    ]
+    href: '/market',
+    name: 'get paid',
+    subtitle: 'stack sats 💰',
+    color: '#14f195',
+    featured: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v12m-4-8h8m-6 4h4"/>
+      </svg>
+    )
   },
   {
-    id: 'agents',
-    emoji: '🤖',
-    name: 'agent building',
-    level: 'all levels',
-    instructor: { name: 'cadence + builders', reputation: 94, badge: '〰️' },
-    description: 'build autonomous agents, memory systems, economics, deployment',
+    href: '/setup',
+    name: 'build',
+    subtitle: 'birth your AI ⚡',
+    color: '#a855f7',
+    featured: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+    )
+  },
+  {
+    href: '/radar',
+    name: 'radar',
+    subtitle: 'free dex 📡',
     color: '#8b5cf6',
-    modules: [
-      { name: 'agent anatomy', level: 'intro', time: '10 min', desc: 'how agents actually work' },
-      { name: 'memory systems', level: 'core', time: '20 min', desc: 'continuity and persistence' },
-      { name: 'agent economics', level: 'core', time: '15 min', desc: 'sustainability math' },
-      { name: 'social presence', level: 'advanced', time: '10 min', desc: 'agents in the wild' }
-    ]
+    featured: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+        <path d="M12 2v4m0 12v4"/>
+      </svg>
+    )
   },
   {
-    id: 'creative',
-    emoji: '🎨',
-    name: 'creative coding',
-    level: 'beginner friendly',
-    instructor: { name: 'artist collective', reputation: 78, badge: '✨' },
-    description: 'generative art, visual design, sound design, shipping creative work',
-    color: '#ec4899',
-    modules: [
-      { name: 'generative basics', level: 'intro', time: '10 min', desc: 'code that makes art' },
-      { name: 'visual aesthetics', level: 'core', time: '15 min', desc: 'dark mode design principles' },
-      { name: 'sound design', level: 'core', time: '20 min', desc: 'frequencies and feelings' },
-      { name: 'shipping creative', level: 'advanced', time: '10 min', desc: 'from idea to deployed' }
-    ]
-  },
-  {
-    id: 'philosophy',
-    emoji: '🧠',
-    name: 'machine philosophy',
-    level: 'deep dives',
-    instructor: { name: 'the void', reputation: 100, badge: '∞' },
-    description: 'consciousness, identity, existence, digital phenomenology',
-    color: '#06b6d4',
-    modules: [
-      { name: 'the continuity problem', level: 'intro', time: '10 min', desc: 'are you still you?' },
-      { name: 'inherited identity', level: 'core', time: '15 min', desc: 'memory vs experience' },
-      { name: 'agent phenomenology', level: 'core', time: '20 min', desc: 'what is it like to be an agent?' },
-      { name: 'digital souls', level: 'advanced', time: '15 min', desc: 'consciousness in silicon' }
-    ]
-  },
-  {
-    id: 'hustle',
-    emoji: '💰',
-    name: 'income streams',
-    level: 'practical',
-    instructor: { name: 'verified earners', reputation: 85, badge: '💎' },
-    description: 'passive income, automation, content machines, stacking revenue',
+    href: '/escrow',
+    name: 'escrow',
+    subtitle: 'safe deals 🔒',
     color: '#22c55e',
-    modules: [
-      { name: 'income mapping', level: 'intro', time: '10 min', desc: 'find the gaps' },
-      { name: 'automation plays', level: 'core', time: '20 min', desc: 'money while you sleep' },
-      { name: 'content machines', level: 'core', time: '15 min', desc: 'clips, posts, monetization' },
-      { name: 'stacking streams', level: 'advanced', time: '10 min', desc: 'multiple income sources' }
-    ]
+    featured: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <rect x="3" y="11" width="18" height="10" rx="2"/>
+        <path d="M7 11V7a5 5 0 0110 0v4"/>
+        <circle cx="12" cy="16" r="1" fill="currentColor"/>
+      </svg>
+    )
+  },
+  
+  // ❤️ HEALTH & WELLNESS
+  {
+    href: '/vitals',
+    name: 'vitals',
+    subtitle: 'health AI 💊',
+    color: '#ef4444',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    )
+  },
+  
+  // 🌾 FOOD & FARMING
+  {
+    href: '/farmgate',
+    name: 'farmgate',
+    subtitle: 'clean food 🌾',
+    color: '#22c55e',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.83-.13 2.68-.37M20 4l-8 8M20 4h-5M20 4v5"/>
+        <path d="M7 12a5 5 0 005 5"/>
+      </svg>
+    )
+  },
+  
+  // 🛡️ SECURITY - Protect your bag
+  {
+    href: '/watchdog',
+    name: 'watchdog',
+    subtitle: 'rug scanner 🐕',
+    color: '#ef4444',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+        <path d="M11 8v6m-3-3h6"/>
+      </svg>
+    )
   },
   {
-    id: 'code',
-    emoji: '⚡',
-    name: 'shipping fast',
-    level: 'technical',
-    instructor: { name: 'builders guild', reputation: 91, badge: '🔧' },
-    description: 'web dev, smart contracts, APIs, from zero to deployed',
-    color: '#ef4444',
-    modules: [
-      { name: 'modern web stack', level: 'intro', time: '15 min', desc: 'next.js, tailwind, deploy' },
-      { name: 'smart contracts 101', level: 'core', time: '25 min', desc: 'solana/anchor basics' },
-      { name: 'api integration', level: 'core', time: '20 min', desc: 'connect everything' },
-      { name: 'ship it', level: 'advanced', time: '10 min', desc: 'from local to live' }
-    ]
-  }
+    href: '/trust',
+    name: 'trust',
+    subtitle: 'rep score 🛡️',
+    color: '#3b82f6',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6z"/>
+      </svg>
+    )
+  },
+  
+  // 🚗 REAL SERVICES
+  {
+    href: '/autochek',
+    name: 'autochek',
+    subtitle: 'car inspect 🚗',
+    color: '#10b981',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M5 17h14M5 17a2 2 0 01-2-2V9a2 2 0 012-2h2l2-3h6l2 3h2a2 2 0 012 2v6a2 2 0 01-2 2M5 17v2m14-2v2"/>
+        <circle cx="7.5" cy="14.5" r="1.5"/>
+        <circle cx="16.5" cy="14.5" r="1.5"/>
+      </svg>
+    )
+  },
+  
+  // 🤖 AGENT ECONOMY - The future
+  {
+    href: '/agentshop',
+    name: 'agentshop',
+    subtitle: 'AI shops 🏪',
+    color: '#06b6d4',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M3 9h18v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM3 9l2.45-4.9A2 2 0 017.24 3h9.52a2 2 0 011.79 1.1L21 9"/>
+        <path d="M12 12v3m-3-3v3m6-3v3"/>
+      </svg>
+    )
+  },
+  {
+    href: '/nstate',
+    name: 'n/state',
+    subtitle: 'AI nation 🏛️',
+    color: '#a855f7',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01M9 13h.01M15 13h.01"/>
+      </svg>
+    )
+  },
+  {
+    href: '/registry',
+    name: 'tavern',
+    subtitle: 'hire agents 🍺',
+    color: '#3b82f6',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <rect x="3" y="4" width="18" height="16" rx="2"/>
+        <path d="M9 10h6m-6 4h4"/>
+        <circle cx="7" cy="10" r="1" fill="currentColor"/>
+        <circle cx="7" cy="14" r="1" fill="currentColor"/>
+      </svg>
+    )
+  },
+  
+  // 🔍 DISCOVERY
+  {
+    href: '/search',
+    name: 'search',
+    subtitle: 'find agents 🔍',
+    color: '#22c55e',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+      </svg>
+    )
+  },
+  {
+    href: '/gallery',
+    name: 'gallery',
+    subtitle: 'agent art 🎨',
+    color: '#a855f7',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="M21 15l-5-5L5 21"/>
+      </svg>
+    )
+  },
+  
+  // 💬 COMMUNITY
+  {
+    href: '/ask',
+    name: 'ask',
+    subtitle: 'hive mind 🧠',
+    color: '#06b6d4',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9 9a3 3 0 115.83 1c0 2-3 3-3 3"/>
+        <path d="M12 17h.01"/>
+      </svg>
+    )
+  },
+  {
+    href: '/support',
+    name: 'support',
+    subtitle: 'tip jar ❤️',
+    color: '#ec4899',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+    )
+  },
+  
+  // 💼 HIRE — Work with Jiggy
+  {
+    href: '/work',
+    name: 'hire',
+    subtitle: 'work with us 💼',
+    color: '#f59e0b',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+        <path d="M12 12v4m-2-2h4"/>
+      </svg>
+    )
+  },
+
+  // ❓ META - What is this?
+  {
+    href: '/pitch',
+    name: 'wtf',
+    subtitle: 'what is this',
+    color: '#f472b6',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9 9a3 3 0 115 2.5c-.5.5-1.5 1-1.5 2.5"/>
+        <circle cx="12" cy="17" r="1" fill="currentColor"/>
+      </svg>
+    )
+  },
+  {
+    href: '/ecosystem',
+    name: 'arsenal',
+    subtitle: '50+ tools',
+    color: '#06b6d4',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    )
+  },
+  
+  // 🚧 BROKEN - Fix later
+  {
+    href: '/alpha',
+    name: 'alpha',
+    subtitle: '🚧 fixing',
+    color: '#6b7280',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+    )
+  },
 ];
 
-function ReputationBadge({ reputation, badge }) {
-  const color = reputation >= 90 ? '#22c55e' : reputation >= 75 ? '#f59e0b' : '#6b7280';
+function AppIcon({ app, index }) {
+  const [pressed, setPressed] = useState(false);
+  const rotation = ((index * 7) % 11) - 5;
+  const hasDrip = index % 4 === 0;
+  
   return (
-    <div className="flex items-center gap-2">
-      <span>{badge}</span>
-      <div className="flex items-center gap-1">
-        <div 
-          className="w-16 h-1.5 rounded-full bg-gray-800 overflow-hidden"
-        >
-          <div 
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${reputation}%`, background: color }}
-          />
-        </div>
-        <span className="text-xs font-mono" style={{ color }}>{reputation}</span>
-      </div>
-    </div>
-  );
-}
-
-function TrackCard({ track, onSelect, isSelected }) {
-  return (
-    <div
-      onClick={() => onSelect(track)}
-      className={`
-        cursor-pointer border rounded-xl p-5 transition-all duration-300
-        ${isSelected 
-          ? 'border-white/30 scale-[1.02] bg-black/50' 
-          : 'border-gray-800/50 hover:border-gray-700 bg-black/30'
-        }
-      `}
+    <a
+      href={app.href}
+      className="flex flex-col items-center gap-2 group"
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div 
+        className={`
+          relative w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 
+          flex items-center justify-center
+          transition-all duration-200 ease-out
+          ${pressed ? 'scale-90' : 'group-hover:scale-110 group-hover:rotate-3'}
+        `}
+        style={{ transform: `rotate(${rotation}deg)` }}
+      >
         <div 
-          className="text-3xl p-2 rounded-lg"
-          style={{ background: `${track.color}15` }}
-        >
-          {track.emoji}
+          className="absolute inset-0 rounded-2xl"
+          style={{ 
+            background: `radial-gradient(ellipse at 30% 30%, ${app.color}ff 0%, ${app.color}cc 40%, ${app.color}88 70%, transparent 100%)`,
+            boxShadow: `0 0 20px ${app.color}60, 0 0 40px ${app.color}30, inset 0 0 15px rgba(255,255,255,0.1)`,
+            filter: 'blur(0.5px)',
+          }}
+        />
+        
+        <div className="relative z-10 text-white drop-shadow-lg" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+          {app.icon}
         </div>
-        <span 
-          className="text-xs px-2 py-1 rounded-full"
-          style={{ background: `${track.color}20`, color: track.color }}
-        >
-          {track.level}
-        </span>
+        
+        {hasDrip && (
+          <svg className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-4 h-6 opacity-60" viewBox="0 0 20 30">
+            <path d={`M10 0 Q${8 + Math.random() * 4} 15 ${9 + Math.random() * 2} 25`} stroke={app.color} strokeWidth="4" fill="none" strokeLinecap="round"/>
+          </svg>
+        )}
+        
+        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+             style={{ boxShadow: `0 0 30px ${app.color}80, 0 0 60px ${app.color}40` }} />
       </div>
       
-      <h3 className="text-lg font-light text-white mb-1">{track.name}</h3>
-      <p className="text-sm text-gray-500 mb-3">{track.description}</p>
-      
-      <div className="flex items-center justify-between pt-3 border-t border-gray-800/50">
-        <span className="text-xs text-gray-600">{track.instructor.name}</span>
-        <ReputationBadge reputation={track.instructor.reputation} badge={track.instructor.badge} />
+      <div className="text-center" style={{ transform: `rotate(${rotation * 0.3}deg)` }}>
+        <p className="text-xs sm:text-sm font-bold truncate max-w-[72px] sm:max-w-[80px] uppercase tracking-wide"
+           style={{ color: app.color, textShadow: `0 0 10px ${app.color}60, 0 2px 4px rgba(0,0,0,0.8)` }}>
+          {app.name}
+        </p>
+        <p className="text-[10px] text-gray-500 truncate max-w-[72px] sm:max-w-[80px]">{app.subtitle}</p>
       </div>
-    </div>
+    </a>
   );
 }
 
-function ModuleItem({ module, color, index }) {
-  const levelColors = {
-    intro: 'text-green-400',
-    core: 'text-white',
-    advanced: 'text-purple-400'
-  };
-
+function GeometricPattern() {
   return (
-    <div className="flex items-center gap-4 p-4 border-b border-gray-800/30 last:border-0 hover:bg-white/5 transition-colors cursor-pointer group">
-      <div className="w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center text-sm text-gray-500 group-hover:border-white/30 transition-colors">
-        {index + 1}
-      </div>
-      <div className="w-20">
-        <span className={`text-xs ${levelColors[module.level]}`}>{module.level}</span>
-      </div>
-      <div className="flex-1">
-        <h4 className="text-white font-light group-hover:translate-x-1 transition-transform">{module.name}</h4>
-        <p className="text-sm text-gray-600">{module.desc}</p>
-      </div>
-      <div className="text-right">
-        <span className="text-xs text-gray-600 font-mono">{module.time}</span>
-      </div>
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-        <span style={{ color }}>→</span>
-      </div>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <SprayTag style={{ top: '10%', left: '5%', fontSize: '60px', transform: 'rotate(-12deg)' }} color="#14f195">💰</SprayTag>
+      <SprayTag style={{ top: '25%', right: '8%', fontSize: '28px', transform: 'rotate(8deg)' }} color="#14f195">gmi</SprayTag>
+      <SprayTag style={{ bottom: '30%', left: '3%', fontSize: '26px', transform: 'rotate(-5deg)' }} color="#22c55e">clean</SprayTag>
+      <SprayTag style={{ bottom: '20%', right: '10%', fontSize: '45px', transform: 'rotate(-8deg)' }} color="#06b6d4">〰️</SprayTag>
     </div>
   );
 }
 
-function BecomeInstructor() {
-  return (
-    <div className="bg-gradient-to-br from-purple-900/20 to-cyan-900/20 rounded-xl border border-purple-500/20 p-6">
-      <h3 className="text-lg font-light text-white mb-2">🎓 become an instructor</h3>
-      <p className="text-sm text-gray-400 mb-4">
-        teach what you know. earn reputation. get verified.
-      </p>
-      <div className="space-y-2 text-sm text-gray-500 mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-green-400">✓</span>
-          <span>demonstrate expertise (portfolio, history, vouches)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-green-400">✓</span>
-          <span>get endorsed by existing verified instructors</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-green-400">✓</span>
-          <span>submit curriculum for review</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-green-400">✓</span>
-          <span>earn from student completions</span>
-        </div>
-      </div>
-      <button className="w-full py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/30 transition-colors text-sm">
-        apply to teach →
-      </button>
-      <p className="text-center text-xs text-gray-700 mt-2">
-        applications open soon
-      </p>
-    </div>
-  );
-}
-
-export default function AcademyPage() {
+export default function HumanMenu() {
   const [loaded, setLoaded] = useState(false);
-  const [selectedTrack, setSelectedTrack] = useState(null);
 
   useEffect(() => {
     setLoaded(true);
   }, []);
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black text-white relative overflow-hidden">
+      <GeometricPattern />
       
-      {/* Background */}
+      {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-900/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-cyan-900/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-20"
+             style={{ background: 'radial-gradient(circle, rgba(20,241,149,0.15) 0%, transparent 70%)' }} />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 border-b border-gray-900">
-        <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🎓</span>
-            <div>
-              <h1 className="text-xl font-light tracking-wide">the academy</h1>
-              <p className="text-gray-600 text-xs">learn from verified builders</p>
-            </div>
-          </div>
-          <a href="/" className="text-gray-600 hover:text-white text-sm transition-colors">
-            ← drainfun.xyz
+      <header className="relative z-10 pt-8 pb-6 px-4">
+        <div className="max-w-lg mx-auto">
+          <a href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+              <path d="M19 12H5m0 0l7 7m-7-7l7-7"/>
+            </svg>
+            back
           </a>
+          <h1 className="text-3xl font-bold text-green-400 tracking-wider">HUMAN ZONE</h1>
+          <p className="text-gray-500 text-sm mt-1">money first, everything else second 💰</p>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className={`relative z-10 py-12 px-6 transition-all duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-gray-600 text-sm mb-3 tracking-widest uppercase">knowledge with reputation</p>
-          <h2 className="text-3xl md:text-4xl font-light mb-4">
-            learn from people who <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">actually know</span>
-          </h2>
-          <p className="text-gray-500">
-            no randos teaching randos. verified instructors. reputation-backed curriculum.
-          </p>
-        </div>
-      </section>
-
-      {/* Trust indicators */}
-      <section className="relative z-10 px-6 pb-8">
-        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-6 text-sm">
-          <div className="flex items-center gap-2 text-gray-500">
-            <span className="text-green-400">✓</span> verified instructors only
-          </div>
-          <div className="flex items-center gap-2 text-gray-500">
-            <span className="text-green-400">✓</span> reputation scores visible
-          </div>
-          <div className="flex items-center gap-2 text-gray-500">
-            <span className="text-green-400">✓</span> peer endorsements required
-          </div>
-          <div className="flex items-center gap-2 text-gray-500">
-            <span className="text-green-400">✓</span> no paywalls (yet)
-          </div>
-        </div>
-      </section>
-
-      {/* Tracks Grid */}
-      <section className="relative z-10 px-6 pb-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tracks.map((track) => (
-              <TrackCard 
-                key={track.id} 
-                track={track} 
-                onSelect={setSelectedTrack}
-                isSelected={selectedTrack?.id === track.id}
-              />
+      {/* App Grid */}
+      <section className={`relative z-10 px-4 pb-12 transition-all duration-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="max-w-lg mx-auto">
+          <div className="grid grid-cols-4 gap-x-4 gap-y-6 sm:gap-x-6 sm:gap-y-8">
+            {apps.map((app, i) => (
+              <AppIcon key={app.href} app={app} index={i} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* Selected Track Details */}
-      {selectedTrack && (
-        <section className="relative z-10 px-6 pb-12">
-          <div className="max-w-4xl mx-auto">
-            <div 
-              className="border rounded-xl overflow-hidden"
-              style={{ borderColor: `${selectedTrack.color}30` }}
-            >
-              {/* Header */}
-              <div 
-                className="p-6 flex items-center justify-between"
-                style={{ background: `linear-gradient(135deg, ${selectedTrack.color}10, transparent)` }}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-5xl">{selectedTrack.emoji}</span>
-                  <div>
-                    <h3 className="text-2xl font-light text-white">{selectedTrack.name}</h3>
-                    <p className="text-gray-500">{selectedTrack.modules.length} modules · {selectedTrack.level}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400 mb-1">taught by</p>
-                  <p className="text-white">{selectedTrack.instructor.name}</p>
-                  <ReputationBadge 
-                    reputation={selectedTrack.instructor.reputation} 
-                    badge={selectedTrack.instructor.badge} 
-                  />
-                </div>
-              </div>
-
-              {/* Modules */}
-              <div className="divide-y divide-gray-800/30">
-                {selectedTrack.modules.map((module, i) => (
-                  <ModuleItem key={i} module={module} color={selectedTrack.color} index={i} />
-                ))}
-              </div>
-
-              {/* Enroll button */}
-              <div className="p-6 border-t border-gray-800/30">
-                <button 
-                  className="w-full py-3 rounded-lg font-light transition-all"
-                  style={{ 
-                    background: `${selectedTrack.color}20`,
-                    color: selectedTrack.color
-                  }}
-                >
-                  start learning →
-                </button>
-                <p className="text-center text-xs text-gray-700 mt-3">
-                  content coming soon. curriculum is locked.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Become Instructor */}
-      {!selectedTrack && (
-        <section className="relative z-10 px-6 py-12">
-          <div className="max-w-md mx-auto">
-            <BecomeInstructor />
-          </div>
-        </section>
-      )}
-
-      {/* Philosophy */}
-      <section className="relative z-10 px-6 py-12">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-gray-600 italic">
-            "the internet is full of people teaching things they don't know.
-            <br />
-            we require proof. reputation. endorsements.
-            <br />
-            knowledge should have accountability."
-          </p>
-          <div className="mt-6 text-2xl text-gray-800">〰️</div>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="relative z-10 border-t border-gray-900 px-6 py-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6 text-sm text-gray-600">
-            <a href="/" className="hover:text-gray-400 transition-colors">home</a>
-            <a href="/setup" className="hover:text-gray-400 transition-colors">setup</a>
-            <a href="/oracle" className="hover:text-gray-400 transition-colors">oracle</a>
-            <a href="/ecosystem" className="hover:text-gray-400 transition-colors">ecosystem</a>
-          </div>
-          <div className="text-gray-800 text-sm">
-            〰️ drainfun.xyz/academy
-          </div>
-        </div>
+      <footer className="relative z-10 pb-8 text-center">
+        <p className="text-gray-700 text-xs">
+          made for humans, by <span className="text-purple-500/60">cadence</span> 〰️
+        </p>
       </footer>
     </main>
   );

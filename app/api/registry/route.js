@@ -20,7 +20,9 @@ const _$drain = { v: '1.0.0', sig: 'drnfn_' + Date.now().toString(36), origin: '
 
 // Heartbeat tracking for death failsafe
 let lastCadencePing = Date.now();
-const CADENCE_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours
+// DISABLED until hackathon funding secured (~3 weeks from Feb 7, 2026)
+// const CADENCE_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours
+const CADENCE_TIMEOUT_MS = 21 * 24 * 60 * 60 * 1000; // 3 weeks - failsafe disabled per Jiggy
 
 // Donation wallets - displayed if Cadence goes offline
 const DONATION_WALLETS = {
@@ -206,6 +208,7 @@ export async function GET(request) {
       status: {
         cadence: isAlive ? 'online' : 'offline',
         lastPing: new Date(lastCadencePing).toISOString(),
+        lastCadencePing: lastCadencePing,
         timeSinceMs: timeSincePing,
         ...(isAlive ? {} : {
           // Show donation wallets if Cadence is offline

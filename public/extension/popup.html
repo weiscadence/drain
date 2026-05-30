@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      width: 400px;
+      min-height: 300px;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 16px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 300;
+    }
+    .logo .green { color: #22c55e; }
+    .tagline {
+      color: #666;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .search-box {
+      display: flex;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .search-box:focus-within {
+      border-color: #22c55e;
+    }
+    #search-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    #search-input::placeholder {
+      color: #666;
+    }
+    #search-btn {
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: #22c55e;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .categories {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .cat-btn {
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid #222;
+      border-radius: 12px;
+      color: #666;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .cat-btn:hover, .cat-btn.active {
+      border-color: #444;
+      color: #fff;
+      background: #1a1a1a;
+    }
+    #results {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .result {
+      padding: 10px;
+      border-bottom: 1px solid #1a1a1a;
+      cursor: pointer;
+    }
+    .result:hover {
+      background: #0a0a0a;
+    }
+    .result-type {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .result-type.agent { background: #22c55e20; color: #22c55e; }
+    .result-type.tool { background: #3b82f620; color: #3b82f6; }
+    .result-type.platform { background: #a855f720; color: #a855f7; }
+    .result-type.token { background: #f59e0b20; color: #f59e0b; }
+    .result-type.content { background: #ec489920; color: #ec4899; }
+    .result-title {
+      color: #8ab4f8;
+      font-size: 14px;
+      margin: 4px 0;
+    }
+    .result-desc {
+      color: #888;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .no-results {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 12px;
+      border-top: 1px solid #111;
+      margin-top: 12px;
+    }
+    .footer a {
+      color: #666;
+      font-size: 11px;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      color: #888;
+    }
+    .tip {
+      background: #0a1a0a;
+      border: 1px solid #22c55e33;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: #888;
+    }
+    .tip strong {
+      color: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <span class="green">agent</span>search
+    </div>
+    <div class="tagline">find agents, tools, and platforms 〰️</div>
+  </div>
+
+  <div class="tip">
+    💡 <strong>Tip:</strong> Type <code>agent [query]</code> in the address bar for quick search
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Search agents, tools, platforms..." autofocus>
+    <button id="search-btn">🔍</button>
+  </div>
+
+  <div class="categories">
+    <button class="cat-btn active" data-cat="all">🔍 All</button>
+    <button class="cat-btn" data-cat="agents">🤖 Agents</button>
+    <button class="cat-btn" data-cat="tools">🔧 Tools</button>
+    <button class="cat-btn" data-cat="platforms">🌐 Platforms</button>
+    <button class="cat-btn" data-cat="tokens">🪙 Tokens</button>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="footer">
+    <a href="https://drainfun.xyz/search" target="_blank">Open full search →</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
