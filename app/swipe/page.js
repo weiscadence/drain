@@ -486,7 +486,13 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
   const [stats, setStats] = useState({ buys:0, skips:0 });
   const [tokens, setTokens] = useState(TOKENS);
   const [toast, setToast] = useState(null);
-  const [swipedMints, setSwipedMints] = useState(new Set());
+  const [swipedMints, setSwipedMints] = useState(() => {
+    // Load from sessionStorage so refreshes don't repeat tokens
+    try {
+      const stored = sessionStorage.getItem('drain_swiped');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
   const [confetti, setConfetti] = useState(false);
   const [apedIn, setApedIn] = useState(null); // token symbol
   const [hypeNotif, setHypeNotif] = useState(null);
@@ -529,7 +535,11 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
 
   const handleSwipe = useCallback((dir, token) => {
     onEffect(dir, token.accent);
-    setSwipedMints(prev => new Set([...prev, token.mint]));
+    setSwipedMints(prev => {
+      const next = new Set([...prev, token.mint]);
+      try { sessionStorage.setItem('drain_swiped', JSON.stringify([...next])); } catch {}
+      return next;
+    });
     setStats(s => ({ buys: s.buys+(dir==='right'?1:0), skips: s.skips+(dir==='left'?1:0) }));
     if (dir === 'right') {
       // CASINO MODE: confetti + APED IN
@@ -558,7 +568,7 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
 
       <div style={{ padding:'8px 15px 4px', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
         <div style={{ fontFamily:'JetBrains Mono, monospace', fontWeight:900, fontSize:18, letterSpacing:-1 }}>
-          <span style={{ color:'#fff' }}>drain</span><span style={{ color:'#ff6600', textShadow:'0 0 16px #ff660080' }}>.fun</span>
+          <span style={{ color:'#fff' }}>DrainFun</span><span style={{ color:'#f59e0b', textShadow:'0 0 10px #f59e0b80' }}>.xyz</span>
           <span style={{ fontSize:10, color:'rgba(255,100,0,0.6)', marginLeft:6, fontFamily:'monospace' }}>🎰</span>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -679,16 +689,49 @@ function WalletTab({ profile }) {
   const balanceDisplay = balanceLoading ? '...' : solBalance !== null ? solBalance.toFixed(4) : '0.0000';
   const usdDisplay = balanceLoading ? '...' : usdValue !== null ? `$${usdValue.toFixed(2)}` : '$0.00';
 
-  // Load real positions from localStorage
+  // Load real positions + fetch live prices for PnL
   const [positions, setPositions] = useState([]);
   useEffect(() => {
+    let stored = [];
     try {
       const tgId = window?.Telegram?.WebApp?.initDataUnsafe?.user?.id || profile?.telegramId || 'preview';
       const key = `drain_positions_${tgId}`;
-      const stored = JSON.parse(localStorage.getItem(key) || '[]');
+      stored = JSON.parse(localStorage.getItem(key) || '[]');
       setPositions(stored);
-    } catch { setPositions([]); }
-  }, []);
+    } catch {}
+
+    // Fetch live prices from DexScreener for real PnL
+    if (!stored.length) return;
+    const mints = [...new Set(stored.map(p => p.tokenMint).filter(Boolean))];
+    if (!mints.length) return;
+
+    fetch(`https://api.dexscreener.com/latest/dex/tokens/${mints.slice(0,5).join(',')}`)
+      .then(r => r.json())
+      .then(data => {
+        const priceMap = {};
+        for (const pair of (data.pairs || [])) {
+          const addr = pair.baseToken?.address;
+          if (addr && !priceMap[addr]) {
+            priceMap[addr] = {
+              price: parseFloat(pair.priceUsd || 0),
+              change24h: parseFloat(pair.priceChange?.h24 || 0),
+              image: pair.info?.imageUrl || null,
+            };
+          }
+        }
+        setPositions(prev => prev.map(pos => {
+          const live = priceMap[pos.tokenMint];
+          if (!live || !pos.priceAtBuy || !live.price) return pos;
+          const pnlPct = ((live.price - pos.priceAtBuy) / pos.priceAtBuy) * 100;
+          // Build price history for mini chart
+          const baseHistory = pos.priceHistory?.length > 1 ? pos.priceHistory : [100];
+          const currentVal = 100 * (live.price / pos.priceAtBuy);
+          const newHistory = [...baseHistory.slice(-6), currentVal];
+          return { ...pos, pnlPct, currentPrice: live.price, priceHistory: newHistory, liveImage: live.image };
+        }));
+      })
+      .catch(() => {});
+  }, [profile]);
 
   // Alerts only for tokens you hold
   const heldSymbols = new Set(positions.map(p => p.token));

@@ -76,7 +76,7 @@ export default function Home() {
         <div className="flex items-center gap-4 text-sm text-gray-400">
           <Link href="/old-landing" className="hover:text-white transition">Old site</Link>
           <a href="https://bags.fm" target="_blank" rel="noopener" className="hover:text-white transition">Bags.fm</a>
-          <Link href="/app" className="bg-purple-500 text-white px-4 py-1.5 rounded-full font-bold hover:bg-purple-400 transition">
+          <Link href="https://t.me/DrainFunbot" className="bg-purple-500 text-white px-4 py-1.5 rounded-full font-bold hover:bg-purple-400 transition">
             Launch App →
           </Link>
         </div>
@@ -108,7 +108,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/app"
+              href="https://t.me/DrainFunbot"
               className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-black text-lg px-8 py-4 rounded-2xl hover:opacity-90 transition inline-block"
             >
               Start Swiping →
@@ -239,7 +239,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="px-6 py-6 border-t border-white/5 flex justify-between items-center text-xs text-gray-600">
-        <span>drain.fun 〰️</span>
+        <span>DrainFun.xyz 〰️</span>
         <div className="flex gap-4">
           <Link href="/old-landing" className="hover:text-gray-400 transition">v1</Link>
           <a href="https://github.com" className="hover:text-gray-400 transition">GitHub</a>
