@@ -207,6 +207,53 @@ export default function TokenDetailSheet({ token, onClose }) {
             </div>
           )}
 
+          {/* CHART */}
+          {!loading && tab === 'chart' && (
+            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              {token.pairAddress ? (
+                <>
+                  <div style={{ background:`${token.accent}08`, borderRadius:14, padding:'16px', border:`1px solid ${token.accent}20`, textAlign:'center' }}>
+                    <div style={{ fontSize:28, marginBottom:8 }}>📈</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'JetBrains Mono, monospace', marginBottom:6 }}>Live DexScreener Chart</div>
+                    <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', marginBottom:14, lineHeight:1.6 }}>
+                      Telegram webview blocks embedded charts.<br/>Opens full chart in your browser.
+                    </div>
+                    <button
+                      onClick={() => openExternal(`https://dexscreener.com/solana/${token.pairAddress}`)}
+                      style={{ width:'100%', height:48, borderRadius:14, background:`linear-gradient(135deg, ${token.accent}, ${token.accent}99)`, color:'#000', fontSize:15, fontWeight:900, cursor:'pointer', border:'none', fontFamily:'JetBrains Mono, monospace', boxShadow:`0 4px 20px ${token.accent}40` }}
+                    >
+                      📈 Open Chart →
+                    </button>
+                  </div>
+
+                  {/* Price snapshot from our data */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    {[
+                      ['Price', token.price > 0 ? `$${token.price.toFixed(8)}` : '—'],
+                      ['24h Change', token.change !== undefined ? `${token.change >= 0 ? '+':''}${token.change.toFixed(1)}%` : '—'],
+                      ['MCap', token.mcap > 0 ? (token.mcap >= 1e6 ? `$${(token.mcap/1e6).toFixed(1)}M` : `$${(token.mcap/1e3).toFixed(0)}K`) : '—'],
+                      ['Vol 24h', token.vol > 0 ? (token.vol >= 1e6 ? `$${(token.vol/1e6).toFixed(1)}M` : `$${(token.vol/1e3).toFixed(0)}K`) : '—'],
+                    ].map(([l,v]) => (
+                      <div key={l} style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginBottom:3 }}>{l}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color: l==='24h Change' ? (token.change>=0?'#00ff88':'#ff4444') : '#fff', fontFamily:'JetBrains Mono, monospace' }}>{v}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign:'center', padding:'30px 0' }}>
+                  <div style={{ fontSize:36, marginBottom:10 }}>📊</div>
+                  <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', marginBottom:14 }}>No DEX pair found yet</div>
+                  <button onClick={() => openExternal(`https://dexscreener.com/search?q=${token.symbol}`)}
+                    style={{ padding:'10px 24px', borderRadius:12, background:`${token.accent}15`, border:`1px solid ${token.accent}30`, color:token.accent, fontWeight:700, cursor:'pointer', fontFamily:'monospace', fontSize:12 }}>
+                    Search on DexScreener →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* HOLDERS — native bubble map */}
           {!loading && tab === 'holders' && (
             <>

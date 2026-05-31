@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { Confetti, ApedIn, RuggedScreen, HypeNotification, X2Button, PnlTicker, PositionEmoji, HYPE_NOTIFS } from '../../components/CasinoLayer';
+import WebUserBanner from '../../components/WebUserBanner';
 import SplashScreen from '../../components/SplashScreen';
 const FundModal = lazy(() => import('../../components/FundModal'));
 const Onboarding = lazy(() => import('../../components/Onboarding'));
