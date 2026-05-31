@@ -162,7 +162,10 @@ export default function TokenDetailSheet({ token, onClose }) {
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {detail && <div style={{ fontSize:14, fontWeight:800, color: detail.priceChange24h>=0?'#00ff88':'#ff4444', fontFamily:'JetBrains Mono, monospace' }}>{fmtP(detail.priceChange24h||0)}</div>}
+    <div style={{display:'flex',gap:8}}>
+            <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'5px 12px', color:'rgba(255,255,255,0.6)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>← Back</button>
             <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'none', color:'rgba(255,255,255,0.5)', width:28, height:28, borderRadius:'50%', fontSize:14, cursor:'pointer' }}>✕</button>
+          </div>
           </div>
         </div>
 
@@ -212,18 +215,33 @@ export default function TokenDetailSheet({ token, onClose }) {
             <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
               {token.pairAddress ? (
                 <>
-                  <div style={{ background:`${token.accent}08`, borderRadius:14, padding:'16px', border:`1px solid ${token.accent}20`, textAlign:'center' }}>
-                    <div style={{ fontSize:28, marginBottom:8 }}>📈</div>
-                    <div style={{ fontSize:14, fontWeight:700, color:'#fff', fontFamily:'JetBrains Mono, monospace', marginBottom:6 }}>Live DexScreener Chart</div>
-                    <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', marginBottom:14, lineHeight:1.6 }}>
-                      Telegram webview blocks embedded charts.<br/>Opens full chart in your browser.
-                    </div>
-                    <button
-                      onClick={() => openExternal(`https://dexscreener.com/solana/${token.pairAddress}`)}
-                      style={{ width:'100%', height:48, borderRadius:14, background:`linear-gradient(135deg, ${token.accent}, ${token.accent}99)`, color:'#000', fontSize:15, fontWeight:900, cursor:'pointer', border:'none', fontFamily:'JetBrains Mono, monospace', boxShadow:`0 4px 20px ${token.accent}40` }}
-                    >
-                      📈 Open Chart →
-                    </button>
+                  {/* DexScreener live iframe */}
+                  <div style={{ borderRadius:14, overflow:'hidden', border:`1px solid ${token.accent}30`, height:220, position:'relative' }}>
+                    <iframe
+                      src={`https://dexscreener.com/solana/${token.pairAddress}?embed=1&theme=dark&trades=0&info=0`}
+                      style={{ width:'100%', height:'100%', border:'none' }}
+                      allow="clipboard-write"
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                    />
+                  </div>
+                  <button
+                    onClick={() => openExternal(`https://dexscreener.com/solana/${token.pairAddress}`)}
+                    style={{ width:'100%', height:40, borderRadius:12, background:`${token.accent}10`, border:`1px solid ${token.accent}25`, color:token.accent, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}
+                  >
+                    Open full chart →
+                  </button>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    {[
+                      ['Price', token.price > 0 ? `$${token.price < 0.001 ? token.price.toFixed(8) : token.price.toFixed(4)}` : '—'],
+                      ['24h', token.change !== undefined ? `${token.change >= 0?'+':''}${token.change.toFixed(1)}%` : '—'],
+                      ['MCap', token.mcap > 0 ? (token.mcap>=1e6?`$${(token.mcap/1e6).toFixed(1)}M`:`$${(token.mcap/1e3).toFixed(0)}K`) : '—'],
+                      ['Vol', token.vol > 0 ? (token.vol>=1e6?`$${(token.vol/1e6).toFixed(1)}M`:`$${(token.vol/1e3).toFixed(0)}K`) : '—'],
+                    ].map(([l,v]) => (
+                      <div key={l} style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'8px 12px', border:'1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginBottom:2 }}>{l}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:l==='24h'?(token.change>=0?'#00ff88':'#ff4444'):'#fff', fontFamily:'JetBrains Mono, monospace' }}>{v}</div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Price snapshot from our data */}

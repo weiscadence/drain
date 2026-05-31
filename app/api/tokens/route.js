@@ -211,16 +211,29 @@ export async function GET(request) {
     }));
 
     // 3. Filter nulls, sort by tier then by quality signal
-    const tokens = enriched
+    // Sort by tier then score
+    const sorted = enriched
       .filter(Boolean)
       .sort((a, b) => {
-        if (a.tier !== b.tier) return a.tier - b.tier; // tier1 first
-        // Within tier: signal confidence > vol > fees
+        if (a.tier !== b.tier) return a.tier - b.tier;
         const aScore = (a.signalConfidence === 'HIGH' ? 100 : 0) + (a.vol / 10000) + a.lifetimeFeesSol;
         const bScore = (b.signalConfidence === 'HIGH' ? 100 : 0) + (b.vol / 10000) + b.lifetimeFeesSol;
         return bScore - aScore;
-      })
-      .slice(0, limit);
+      });
+
+    // Interleave tiers: 1 tier1, 2 tier2, 1 tier1, 2 tier2...
+    // This prevents DRAIN/BONK always being first
+    const t1 = sorted.filter(t => t.tier === 1);
+    const t2 = sorted.filter(t => t.tier === 2);
+    const interleaved = [];
+    let i1 = 0, i2 = 0;
+    while (interleaved.length < limit && (i1 < t1.length || i2 < t2.length)) {
+      if (i2 < t2.length) interleaved.push(t2[i2++]); // Bags token first
+      if (i1 < t1.length) interleaved.push(t1[i1++]); // then established
+      if (i2 < t2.length) interleaved.push(t2[i2++]);
+      if (i2 < t2.length) interleaved.push(t2[i2++]);
+    }
+    const tokens = interleaved.slice(0, limit);
 
     return Response.json({
       tokens,
