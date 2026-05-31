@@ -365,7 +365,13 @@ function SwipeCard({ token, onSwipe, walletAddress }) {
             <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:3, fontFamily:'monospace' }}>${token.symbol} · {token.age}</div>
           </div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
-            <span style={{ fontSize:11, fontWeight:800, color:token.riskColor, border:`1px solid ${token.riskColor}50`, borderRadius:8, padding:'3px 9px', background:`${token.riskColor}12`, fontFamily:'monospace' }}>{token.risk} RISK</span>
+            <span style={{ fontSize:11, fontWeight:800, color:token.riskColor, border:`1px solid ${token.riskColor}50`, borderRadius:8, padding:'3px 9px', background:`${token.riskColor}12`, fontFamily:'monospace' }}>{token.risk}</span>
+            {token.signalSource === 'unverified'
+              ? <span style={{ fontSize:9, color:'rgba(255,255,255,0.25)', fontFamily:'monospace', border:'1px solid rgba(255,255,255,0.1)', borderRadius:6, padding:'2px 6px' }}>no signal</span>
+              : token.signalConfidence === 'HIGH'
+              ? <span style={{ fontSize:9, color:'#ffc800', fontFamily:'monospace', border:'1px solid rgba(255,200,0,0.4)', borderRadius:6, padding:'2px 6px', background:'rgba(255,200,0,0.08)' }}>⚡ JITO SIGNAL</span>
+              : <span style={{ fontSize:9, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, padding:'2px 6px' }}>signal found</span>
+            }
             <span style={{ fontSize:14, color:token.change>=0?'#00ff88':'#ff4444', fontWeight:700, fontFamily:'monospace' }}>{fmtP(token.change)} 24h</span>
           </div>
         </div>
@@ -447,30 +453,7 @@ function SwipeCard({ token, onSwipe, walletAddress }) {
         </button>
       </div>
 
-      {/* X2 or Nothing */}
-      <div style={{ padding:'0 13px 13px' }}
-        onTouchStart={e => e.stopPropagation()}
-        onTouchEnd={e => e.stopPropagation()}
-        onClick={e => e.stopPropagation()}
-      >
-        <X2Button
-          disabled={false}
-          onResult={(win) => {
-            if (win) {
-              // x2: open buy modal with note
-              setShowBuy(true);
-            }
-            // nothing: just skip with funny message
-            if (!win) {
-              if (el.current) {
-                el.current.style.transition = 'transform 0.4s ease';
-                el.current.style.transform = 'translateX(-170vw) rotate(-15deg)';
-                setTimeout(() => onSwipe('left', token), 380);
-              }
-            }
-          }}
-        />
-      </div>
+
 
       {/* Detail sheet */}
       {showDetail && (
@@ -503,6 +486,7 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
   const [stats, setStats] = useState({ buys:0, skips:0 });
   const [tokens, setTokens] = useState(TOKENS);
   const [toast, setToast] = useState(null);
+  const [swipedMints, setSwipedMints] = useState(new Set());
   const [confetti, setConfetti] = useState(false);
   const [apedIn, setApedIn] = useState(null); // token symbol
   const [hypeNotif, setHypeNotif] = useState(null);
@@ -533,24 +517,25 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
         pvp: t.pvp || false,
         attentionTag: t.attentionTag || `◎ ${t.symbol} · Live on Solana`,
       }));
-      // Keep mock tokens as fallback for any gaps, prepend live data
+      // Keep mock tokens as fallback, filter already-swiped
       setTokens(prev => {
         const liveSymbols = new Set(liveTokens.map(t => t.symbol));
         const mockFallback = prev.filter(t => !liveSymbols.has(t.symbol));
-        return [...liveTokens, ...mockFallback].slice(0, 15);
+        const all = [...liveTokens, ...mockFallback].slice(0, 15);
+        return all; // swipedMints filter applied at render time
       });
     }).catch(() => {});
   }, []);
 
   const handleSwipe = useCallback((dir, token) => {
     onEffect(dir, token.accent);
+    setSwipedMints(prev => new Set([...prev, token.mint]));
     setStats(s => ({ buys: s.buys+(dir==='right'?1:0), skips: s.skips+(dir==='left'?1:0) }));
     if (dir === 'right') {
       // CASINO MODE: confetti + APED IN
       setConfetti(true);
       setApedIn(token.symbol);
       setTimeout(() => setConfetti(false), 2000);
-      // Random hype after buy
       setTimeout(() => {
         setHypeNotif(HYPE_NOTIFS[Math.floor(Math.random() * HYPE_NOTIFS.length)]);
       }, 3000);
@@ -558,9 +543,11 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
     setTimeout(() => setIdx(i => i+1), dir === 'right' ? 600 : 300);
   }, [onEffect]);
 
-  const cur = tokens[idx];
-  const nxt = tokens[idx+1];
-  const done = idx >= tokens.length;
+  // Skip already-swiped tokens
+  const unseenTokens = tokens.filter(t => !swipedMints.has(t.mint));
+  const cur = unseenTokens[idx] || null;
+  const nxt = unseenTokens[idx+1] || null;
+  const done = idx >= unseenTokens.length || unseenTokens.length === 0;
 
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
@@ -581,9 +568,9 @@ function SwipeTab({ onEffect, walletAddress, positions }) {
       </div>
       <div style={{ padding:'2px 15px 8px', flexShrink:0 }}>
         <div style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:99, overflow:'hidden' }}>
-          <div style={{ height:'100%', background:'linear-gradient(90deg, #a855f7, #22d3ee)', width:`${(idx/tokens.length)*100}%`, transition:'width 0.3s', boxShadow:'0 0 8px #a855f7' }}/>
+          <div style={{ height:'100%', background:'linear-gradient(90deg, #a855f7, #22d3ee)', width:`${unseenTokens.length > 0 ? (idx/unseenTokens.length)*100 : 100}%`, transition:'width 0.3s', boxShadow:'0 0 8px #a855f7' }}/>
         </div>
-        <div style={{ fontSize:9, color:'rgba(255,255,255,0.18)', fontFamily:'monospace', marginTop:3, letterSpacing:'0.1em' }}>{idx}/{tokens.length} tokens</div>
+        <div style={{ fontSize:9, color:'rgba(255,255,255,0.18)', fontFamily:'monospace', marginTop:3, letterSpacing:'0.1em' }}>{idx}/{unseenTokens.length} tokens</div>
       </div>
 
       <div style={{ flex:1, position:'relative', margin:'0 11px', minHeight:0 }}>
@@ -806,7 +793,7 @@ function WalletTab({ profile }) {
             <div key={i} style={{ background:'rgba(255,255,255,0.025)', border:`1px solid ${color}20`, borderRadius:14, padding:'12px 14px', cursor:'pointer' }}
               onClick={() => setExpandedTrade(expandedTrade === i ? null : i)}
             >
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                   <PositionEmoji pnlPct={t.pnlPct || 0} />
                   <div>
@@ -815,11 +802,20 @@ function WalletTab({ profile }) {
                   </div>
                 </div>
                 <div style={{ textAlign:'right' }}>
-                  <div style={{ fontSize:13, fontWeight:900, color:'rgba(0,255,136,0.6)', fontFamily:'JetBrains Mono, monospace' }}>devnet</div>
-                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>~{parseInt(t.outAmount||0).toLocaleString()}</div>
+                  <div style={{ fontSize:15, fontWeight:900, color: (t.pnlPct||0) >= 0 ? '#00ff88':'#ff4444', fontFamily:'JetBrains Mono, monospace', textShadow:`0 0 10px ${(t.pnlPct||0)>=0?'#00ff8860':'#ff444460'}` }}>
+                    {(t.pnlPct||0) >= 0 ? '+' : ''}{(t.pnlPct||0).toFixed(1)}%
+                  </div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>~{parseInt(t.outAmount||0).toLocaleString()} tkns</div>
                 </div>
               </div>
-              {t.sig && <div style={{ fontSize:9, color:'rgba(255,255,255,0.2)', fontFamily:'monospace', marginTop:4 }}>Tx: {t.sig.slice(0,12)}...</div>}
+              {/* Mini chart using Spark */}
+              <Spark data={t.priceHistory || [100,100,100,100,100,100,100]} color={(t.pnlPct||0)>=0?'#00ff88':'#ff4444'} w={256} h={28}/>
+              {t.sig && (
+                <div style={{ fontSize:9, color:'rgba(255,255,255,0.18)', fontFamily:'monospace', marginTop:4, display:'flex', justifyContent:'space-between' }}>
+                  <span>Tx: {t.sig.slice(0,14)}...</span>
+                  <span style={{color:'rgba(0,255,136,0.4)'}}>localnet ✓</span>
+                </div>
+              )}
             </div>
             );
           })}

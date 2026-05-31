@@ -51,7 +51,7 @@ export async function POST(req) {
     // Airdrop 2 SOL if balance is low
     if (balance < 0.5) {
       const DEVNET_RPCS = [
-        'https://api.devnet.solana.com', // real Solana devnet
+        'http://localhost:8899', // local RPC node
         'https://devnet.helius-rpc.com/?api-key=8017898c-93be-4429-a21e-9b118f410bd3',
       ];
       for (const rpc of DEVNET_RPCS) {

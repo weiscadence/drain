@@ -5,7 +5,7 @@
 import fs from 'fs';
 
 const FAUCET_KEY_PATH = '/home/ubuntu/.config/cadence-secure/faucet-wallet.json';
-const LOCAL_RPC = 'http://localhost:8899';
+const LOCAL_RPC = 'http://localhost:8899'; // local node
 const MAX_AMOUNT = 2; // SOL per request
 
 // Simple in-memory rate limit (resets on server restart, fine for demo)

@@ -32,6 +32,8 @@ function savePosition(token, solAmount, outAmount, sig) {
       timeLabel: 'just now',
       color: '#22c55e',
       priceAtBuy: token.price || 0,
+      priceHistory: [100], // will grow with price updates
+      changeAtBuy: token.change || 0,
     };
     existing.unshift(pos);
     localStorage.setItem(key, JSON.stringify(existing.slice(0, 20))); // keep last 20
