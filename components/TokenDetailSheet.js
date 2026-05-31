@@ -1,296 +1,373 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-// ── Token Detail Sheet — swipe up from card ───────────────
-// Shows: DexScreener chart, BubbleMaps, full rugcheck, tweets
-
 function openExternal(url) {
   const tg = window?.Telegram?.WebApp;
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, '_blank');
 }
 
+// Native bubble map — renders holder distribution without iframes
+function HolderBubbles({ bubbles, top10Pct }) {
+  if (!bubbles?.length) {
+    return (
+      <div style={{ textAlign:'center', padding:'30px 0' }}>
+        <div style={{ fontSize:32, marginBottom:8 }}>🫧</div>
+        <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>loading holder data...</div>
+      </div>
+    );
+  }
+
+  const max = Math.max(...bubbles.map(b => b.pct));
+
+  return (
+    <div>
+      {/* Concentration bar */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+          <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontFamily:'monospace' }}>TOP 10 HOLDERS</span>
+          <span style={{ fontSize:12, fontWeight:800, color: parseFloat(top10Pct) > 50 ? '#ef4444':'#00ff88', fontFamily:'JetBrains Mono, monospace' }}>{top10Pct}%</span>
+        </div>
+        <div style={{ height:6, background:'rgba(255,255,255,0.07)', borderRadius:99, overflow:'hidden' }}>
+          <div style={{ height:'100%', borderRadius:99, width:`${Math.min(parseFloat(top10Pct),100)}%`, background: parseFloat(top10Pct) > 60 ? 'linear-gradient(90deg,#ef4444,#f97316)' : parseFloat(top10Pct) > 35 ? 'linear-gradient(90deg,#f59e0b,#eab308)' : 'linear-gradient(90deg,#00ff88,#22c55e)', boxShadow:'0 0 8px rgba(0,255,136,0.4)' }}/>
+        </div>
+        <div style={{ fontSize:9, color:'rgba(255,255,255,0.25)', fontFamily:'monospace', marginTop:4 }}>
+          {parseFloat(top10Pct) > 60 ? '⚠ High concentration — rug risk' : parseFloat(top10Pct) > 35 ? '⚡ Medium concentration' : '✓ Healthy distribution'}
+        </div>
+      </div>
+
+      {/* Bubble grid */}
+      <div style={{ display:'flex', flexWrap:'wrap', gap:8, justifyContent:'center', padding:'8px 0' }}>
+        {bubbles.slice(0, 12).map((b, i) => {
+          const size = Math.max(36, Math.min(80, 36 + (b.pct / max) * 44));
+          const color = b.isSmart ? '#a855f7' : b.isTeam ? '#f97316' : i < 3 ? '#ef4444' : '#3b82f6';
+          return (
+            <div key={i} style={{
+              width: size, height: size, borderRadius:'50%',
+              background: `${color}22`,
+              border: `1.5px solid ${color}55`,
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+              cursor:'default', position:'relative',
+              boxShadow: b.isSmart ? `0 0 12px ${color}40` : 'none',
+            }}>
+              <div style={{ fontSize: size > 55 ? 11 : 9, fontWeight:700, color, fontFamily:'monospace', textAlign:'center', lineHeight:1.1 }}>
+                {b.pct.toFixed(1)}%
+              </div>
+              <div style={{ fontSize:8, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>
+                {b.address}
+              </div>
+              {b.isSmart && <div style={{ position:'absolute', top:-4, right:-4, fontSize:10 }}>⚡</div>}
+              {b.isTeam && <div style={{ position:'absolute', top:-4, right:-4, fontSize:10 }}>👑</div>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display:'flex', gap:12, justifyContent:'center', marginTop:10, flexWrap:'wrap' }}>
+        {[
+          { color:'#a855f7', label:'Smart wallet ⚡' },
+          { color:'#f97316', label:'Team/Creator 👑' },
+          { color:'#ef4444', label:'Top holder' },
+          { color:'#3b82f6', label:'Regular' },
+        ].map(l => (
+          <div key={l.label} style={{ display:'flex', alignItems:'center', gap:4 }}>
+            <div style={{ width:8, height:8, borderRadius:'50%', background:l.color }}/>
+            <span style={{ fontSize:9, color:'rgba(255,255,255,0.35)', fontFamily:'monospace' }}>{l.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Native price chart using Spark
+function PriceChart({ pairs, accent }) {
+  if (!pairs?.length) {
+    return (
+      <div style={{ height:160, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, background:`${accent}08`, borderRadius:12, border:`1px solid ${accent}20` }}>
+        <div style={{ fontSize:28 }}>📊</div>
+        <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>chart data loading...</div>
+        <button onClick={() => {}} style={{ fontSize:10, color:accent, fontFamily:'monospace', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>
+          open on dexscreener →
+        </button>
+      </div>
+    );
+  }
+  return null; // filled by data
+}
+
 function Section({ title, children }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace', marginBottom: 8 }}>{title}</div>
+    <div style={{ marginBottom:16 }}>
+      <div style={{ fontSize:9, letterSpacing:'0.2em', color:'rgba(255,255,255,0.25)', fontFamily:'monospace', marginBottom:8 }}>{title}</div>
       {children}
     </div>
   );
 }
 
 export default function TokenDetailSheet({ token, onClose }) {
-  const [tab, setTab] = useState('chart'); // chart | bubble | info | tweets
-  const [chartLoaded, setChartLoaded] = useState(false);
+  const [tab, setTab] = useState('holders');
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
   const sheetRef = useRef(null);
   const dragStart = useRef(null);
 
-  // Swipe down to close
+  useEffect(() => {
+    if (!token?.mint) return;
+    setLoading(true);
+    fetch(`/api/token-detail?mint=${token.mint}`)
+      .then(r => r.json())
+      .then(d => { setDetail(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [token?.mint]);
+
   useEffect(() => {
     const el = sheetRef.current;
     if (!el) return;
     const onTouchStart = e => { dragStart.current = e.touches[0].clientY; };
     const onTouchEnd = e => {
-      if (dragStart.current === null) return;
-      const dy = e.changedTouches[0].clientY - dragStart.current;
-      if (dy > 80) onClose();
+      if (!dragStart.current) return;
+      if (e.changedTouches[0].clientY - dragStart.current > 80) onClose();
       dragStart.current = null;
     };
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('touchstart', onTouchStart, { passive:true });
+    el.addEventListener('touchend', onTouchEnd, { passive:true });
     return () => { el.removeEventListener('touchstart', onTouchStart); el.removeEventListener('touchend', onTouchEnd); };
   }, [onClose]);
 
-  const fmtN = n => n >= 1e6 ? `$${(n/1e6).toFixed(1)}M` : n >= 1e3 ? `$${(n/1e3).toFixed(1)}K` : `$${n}`;
+  const fmtN = n => !n ? '$0' : n >= 1e6 ? `$${(n/1e6).toFixed(1)}M` : n >= 1e3 ? `$${(n/1e3).toFixed(1)}K` : `$${n.toFixed(2)}`;
   const fmtP = n => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
-
-  // BubbleMaps embed URL
-  const bubbleUrl = `https://app.bubblemaps.io/sol/token/${token.mint}`;
-  // DexScreener embed URL
-  const chartUrl = token.pairAddress
-    ? `https://dexscreener.com/solana/${token.pairAddress}?embed=1&theme=dark&trades=0&info=0`
-    : null;
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 800, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end' }}
+      style={{ position:'fixed', inset:0, zIndex:800, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(8px)', display:'flex', alignItems:'flex-end' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div
-        ref={sheetRef}
-        style={{
-          width: '100%', background: '#0c0c18',
-          borderRadius: '22px 22px 0 0',
-          border: `1px solid ${token.accent}40`,
-          borderBottom: 'none',
-          height: '82vh',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: `0 -4px 40px rgba(0,0,0,0.6), 0 0 0 1px ${token.accent}20`,
-        }}
-      >
+      <div ref={sheetRef} style={{ width:'100%', background:'#0c0c18', borderRadius:'22px 22px 0 0', border:`1px solid ${token.accent}40`, borderBottom:'none', height:'85vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:`0 -4px 40px rgba(0,0,0,0.6)` }}>
+
         {/* Pull handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 6px', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)' }} />
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px', flexShrink:0 }}>
+          <div style={{ width:36, height:4, borderRadius:99, background:'rgba(255,255,255,0.15)' }}/>
         </div>
 
-        {/* Token identity header */}
-        <div style={{ padding: '0 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, borderBottom: `1px solid ${token.accent}20` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {token.image && (
-              <img src={token.image} alt="" style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${token.accent}40`, objectFit: 'cover' }}
-                onError={e => e.target.style.display = 'none'} />
-            )}
+        {/* Header */}
+        <div style={{ padding:'0 16px 10px', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0, borderBottom:`1px solid ${token.accent}20` }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {token.image && <img src={token.image} alt="" style={{ width:32, height:32, borderRadius:8, objectFit:'contain' }} onError={e=>e.target.style.display='none'}/>}
             <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', fontFamily: 'JetBrains Mono, monospace', letterSpacing: -1 }}>{token.name}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>${token.symbol} · {token.age}</div>
+              <div style={{ fontSize:18, fontWeight:900, color:'#fff', fontFamily:'JetBrains Mono, monospace' }}>{token.name}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontFamily:'monospace' }}>${token.symbol}</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: token.change >= 0 ? '#00ff88' : '#ff4444', fontFamily: 'JetBrains Mono, monospace' }}>{fmtP(token.change)}</div>
-            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', color: 'rgba(255,255,255,0.5)', width: 28, height: 28, borderRadius: '50%', fontSize: 14, cursor: 'pointer' }}>✕</button>
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            {detail && <div style={{ fontSize:14, fontWeight:800, color: detail.priceChange24h>=0?'#00ff88':'#ff4444', fontFamily:'JetBrains Mono, monospace' }}>{fmtP(detail.priceChange24h||0)}</div>}
+            <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'none', color:'rgba(255,255,255,0.5)', width:28, height:28, borderRadius:'50%', fontSize:14, cursor:'pointer' }}>✕</button>
           </div>
         </div>
 
-        {/* Quick stats bar */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 1, background: `${token.accent}10`, flexShrink: 0 }}>
-          {[
-            ['MCap', fmtN(token.mcap)],
-            ['Vol 24h', fmtN(token.vol)],
-            ['Smart $', `${token.smartWallets}w`],
-            ['Jito', `${token.jitoMentions}x`],
-          ].map(([l, v]) => (
-            <div key={l} style={{ padding: '8px 0', textAlign: 'center', background: '#0c0c18' }}>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>{l}</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace' }}>{v}</div>
-            </div>
-          ))}
-        </div>
+        {/* Quick stats */}
+        {detail && (
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:1, background:`${token.accent}10`, flexShrink:0 }}>
+            {[
+              ['MCap', fmtN(detail.mcap)],
+              ['Volume', fmtN(detail.volume24h)],
+              ['Liquidity', fmtN(detail.liquidity)],
+              ['Smart $', `${detail.smartWallets || 0}w`],
+            ].map(([l,v]) => (
+              <div key={l} style={{ padding:'8px 0', textAlign:'center', background:'#0c0c18' }}>
+                <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>{l}</div>
+                <div style={{ fontSize:13, fontWeight:800, color: l==='Smart $' && detail.smartWallets > 0 ? '#a855f7':'#fff', fontFamily:'JetBrains Mono, monospace' }}>{v}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Tab bar */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+        {/* Tabs */}
+        <div style={{ display:'flex', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0 }}>
           {[
-            { id: 'chart', label: '📈 Chart' },
-            { id: 'bubble', label: '🫧 Holders' },
-            { id: 'info', label: '🔍 Info' },
-            { id: 'tweets', label: '🐦 Tweets' },
+            { id:'holders', icon:'🫧', label:'Holders' },
+            { id:'info',    icon:'🔍', label:'Info' },
+            { id:'tweets',  icon:'🐦', label:'Tweets' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ flex: 1, padding: '9px 0', background: 'none', border: 'none', borderBottom: tab === t.id ? `2px solid ${token.accent}` : '2px solid transparent', color: tab === t.id ? token.accent : 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace', marginBottom: -1 }}>
-              {t.label}
+              style={{ flex:1, padding:'9px 0', background:'none', border:'none', borderBottom: tab===t.id ? `2px solid ${token.accent}`:'2px solid transparent', color: tab===t.id ? token.accent:'rgba(255,255,255,0.35)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'monospace', marginBottom:-1 }}>
+              {t.icon} {t.label}
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative', minHeight: 0 }}>
+        {/* Content */}
+        <div style={{ flex:1, overflowY:'auto', padding:'14px 16px', minHeight:0 }}>
 
-          {/* CHART */}
-          {tab === 'chart' && (
-            chartUrl ? (
-              <iframe
-                src={chartUrl}
-                style={{ width: '100%', height: '100%', border: 'none' }}
-                onLoad={() => setChartLoaded(true)}
-                allow="clipboard-write"
-              />
-            ) : (
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 20 }}>
-                <div style={{ fontSize: 40 }}>📊</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', textAlign: 'center' }}>
-                  Chart available once token has a DEX pair
-                </div>
-                <button onClick={() => openExternal(`https://dexscreener.com/solana/${token.mint}`)}
-                  style={{ padding: '10px 20px', borderRadius: 12, background: `${token.accent}15`, border: `1px solid ${token.accent}40`, color: token.accent, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace', fontSize: 12 }}>
-                  View on DexScreener →
-                </button>
-              </div>
-            )
-          )}
-
-          {/* BUBBLE MAP */}
-          {tab === 'bubble' && (
-            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <iframe
-                src={bubbleUrl}
-                style={{ flex: 1, border: 'none', width: '100%' }}
-                sandbox="allow-scripts allow-same-origin allow-popups"
-                allow="clipboard-write"
-              />
-              <div style={{ padding: '8px 14px', display: 'flex', gap: 8, flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <button onClick={() => openExternal(bubbleUrl)}
-                  style={{ flex: 1, padding: '8px', borderRadius: 10, background: `${token.accent}12`, border: `1px solid ${token.accent}30`, color: token.accent, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace', fontSize: 11 }}>
-                  Open BubbleMaps →
-                </button>
-              </div>
+          {loading && (
+            <div style={{ textAlign:'center', padding:'40px 0' }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', border:`3px solid ${token.accent}`, borderTopColor:'transparent', animation:'spin 0.8s linear infinite', margin:'0 auto 12px' }}/>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontFamily:'monospace' }}>loading on-chain data...</div>
             </div>
           )}
 
-          {/* INFO */}
-          {tab === 'info' && (
-            <div style={{ overflowY: 'auto', height: '100%', padding: '14px 16px' }}>
-
-              <Section title="RUGCHECK DETAILS">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {[
-                    { label: 'Contract', value: token.rugcheck?.mutable ? '⚠ Mutable' : '✓ Immutable', good: !token.rugcheck?.mutable },
-                    { label: 'LP Locked', value: (token.rugcheck?.lpLocked || 0) > 80 ? '✓ Locked' : '⚠ Unlocked', good: (token.rugcheck?.lpLocked || 0) > 80 },
-                    { label: 'Top Holder', value: token.rugcheck?.topHolderPct ? `${token.rugcheck.topHolderPct.toFixed(1)}% of supply` : 'Unknown', good: (token.rugcheck?.topHolderPct || 0) < 10 },
-                    { label: 'Risk Score', value: token.rugcheck?.score ? `${token.rugcheck.score}/100` : 'N/A', good: (token.rugcheck?.score || 0) >= 70 },
-                  ].map(r => (
-                    <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>{r.label}</span>
-                      <span style={{ fontSize: 12, color: r.good ? '#00ff88' : '#f59e0b', fontWeight: 700, fontFamily: 'monospace' }}>{r.value}</span>
-                    </div>
-                  ))}
+          {/* HOLDERS — native bubble map */}
+          {!loading && tab === 'holders' && (
+            <>
+              <HolderBubbles
+                bubbles={detail?.holderBubbles || []}
+                top10Pct={detail?.top10Pct || '0'}
+              />
+              {detail?.totalHolders > 0 && (
+                <div style={{ textAlign:'center', marginTop:10, fontSize:11, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>
+                  {detail.totalHolders.toLocaleString()} total holders
                 </div>
-              </Section>
+              )}
+              <div style={{ display:'flex', gap:8, marginTop:14 }}>
+                <button onClick={() => openExternal(`https://app.bubblemaps.io/sol/token/${token.mint}`)}
+                  style={{ flex:1, padding:'9px', borderRadius:10, background:`${token.accent}10`, border:`1px solid ${token.accent}30`, color:token.accent, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
+                  Full BubbleMaps →
+                </button>
+                <button onClick={() => openExternal(`https://gmgn.ai/sol/token/${token.mint}`)}
+                  style={{ flex:1, padding:'9px', borderRadius:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.6)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
+                  GMGN →
+                </button>
+              </div>
+            </>
+          )}
 
-              <Section title="ON-CHAIN SIGNALS">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ padding: '10px 12px', background: `${token.accent}0c`, borderRadius: 10, border: `1px solid ${token.accent}25` }}>
-                    <div style={{ fontSize: 11, color: token.accent, fontWeight: 700, fontFamily: 'monospace', marginBottom: 4 }}>⚡ SMART WALLETS</div>
-                    <div style={{ fontSize: 13, color: '#fff', fontWeight: 900, fontFamily: 'JetBrains Mono, monospace' }}>{token.smartWallets} wallets loading</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Top 1% wallets by PnL history</div>
+          {/* INFO */}
+          {!loading && tab === 'info' && (
+            <>
+              {/* Smart wallets */}
+              <Section title="SMART WALLET ACTIVITY">
+                <div style={{ background: detail?.smartWallets > 0 ? 'rgba(168,85,247,0.08)':'rgba(255,255,255,0.03)', borderRadius:12, padding:'12px 14px', border:`1px solid ${detail?.smartWallets > 0 ? 'rgba(168,85,247,0.3)':'rgba(255,255,255,0.07)'}` }}>
+                  <div style={{ fontSize:24, fontWeight:900, color: detail?.smartWallets > 0 ? '#a855f7':'rgba(255,255,255,0.3)', fontFamily:'JetBrains Mono, monospace' }}>
+                    {detail?.smartWallets || 0} <span style={{ fontSize:14 }}>smart wallets</span>
+                  </div>
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:4, fontFamily:'monospace' }}>
+                    {detail?.smartWallets > 10 ? '🔥 Strong insider interest' :
+                     detail?.smartWallets > 3 ? '👀 Some smart money loading' :
+                     '— No notable smart wallet activity detected'}
                   </div>
                   {token.jitoMentions > 0 && (
-                    <div style={{ padding: '10px 12px', background: 'rgba(168,85,247,0.08)', borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)' }}>
-                      <div style={{ fontSize: 11, color: '#a855f7', fontWeight: 700, fontFamily: 'monospace', marginBottom: 4 }}>⚡ JITO BUNDLES</div>
-                      <div style={{ fontSize: 13, color: '#fff', fontWeight: 900, fontFamily: 'JetBrains Mono, monospace' }}>{token.jitoMentions} bundle clusters</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>Coordinated buy activity detected</div>
-                    </div>
+                    <div style={{ fontSize:11, color:'#a855f7', marginTop:6, fontFamily:'monospace' }}>⚡ Jito bundle activity detected</div>
                   )}
                 </div>
               </Section>
 
-              {token.feeShare > 0 && (
-                <Section title="CREATOR">
-                  <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 13, color: '#fff', fontFamily: 'monospace', fontWeight: 700 }}>{token.creator}</span>
-                      <span style={{ fontSize: 11, color: token.creatorVerified ? '#00ff88' : 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>{token.creatorVerified ? '✓ Verified' : 'Unverified'}</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>{token.feeShare}% fee share configured</div>
+              {/* Rugcheck */}
+              {detail?.rugcheck && (
+                <Section title="RUGCHECK ANALYSIS">
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {[
+                      { label:'Risk Score', val:`${detail.rugcheck.score}/100`, good: detail.rugcheck.score >= 70 },
+                      { label:'Contract', val: detail.rugcheck.mutable ? '⚠ Mutable' : '✓ Immutable', good: !detail.rugcheck.mutable },
+                      { label:'Mint Auth', val: detail.rugcheck.mintAuthority ? '⚠ Active' : '✓ Revoked', good: !detail.rugcheck.mintAuthority },
+                      { label:'LP Locked', val: detail.rugcheck.lpLocked > 80 ? `✓ ${detail.rugcheck.lpLocked.toFixed(0)}%` : `⚠ ${detail.rugcheck.lpLocked.toFixed(0)}%`, good: detail.rugcheck.lpLocked > 80 },
+                    ].map(r => (
+                      <div key={r.label} style={{ display:'flex', justifyContent:'space-between', padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderRadius:10, border:'1px solid rgba(255,255,255,0.06)' }}>
+                        <span style={{ fontSize:12, color:'rgba(255,255,255,0.5)', fontFamily:'monospace' }}>{r.label}</span>
+                        <span style={{ fontSize:12, color: r.good ? '#00ff88':'#f59e0b', fontWeight:700, fontFamily:'monospace' }}>{r.val}</span>
+                      </div>
+                    ))}
+                    {detail.rugcheck.risks?.length > 0 && (
+                      <div style={{ background:'rgba(239,68,68,0.06)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(239,68,68,0.2)' }}>
+                        <div style={{ fontSize:10, color:'#ef4444', fontFamily:'monospace', fontWeight:700, marginBottom:6 }}>RISKS FOUND</div>
+                        {detail.rugcheck.risks.map((r,i) => (
+                          <div key={i} style={{ fontSize:11, color:'rgba(255,255,255,0.6)', fontFamily:'monospace', marginBottom:3 }}>• {r.description || r.name}</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </Section>
               )}
 
+              {/* Contract info */}
               <Section title="CONTRACT">
-                <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', marginBottom: 4 }}>MINT ADDRESS</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', fontFamily: 'JetBrains Mono, monospace', wordBreak: 'break-all', lineHeight: 1.6 }}>{token.mint}</div>
-                  <button
-                    onClick={() => navigator.clipboard?.writeText(token.mint)}
-                    style={{ marginTop: 8, background: `${token.accent}12`, border: `1px solid ${token.accent}30`, borderRadius: 8, padding: '5px 12px', color: token.accent, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace' }}>
-                    Copy address
+                <div style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginBottom:4 }}>MINT ADDRESS</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontFamily:'JetBrains Mono, monospace', wordBreak:'break-all', lineHeight:1.7, marginBottom:8 }}>{token.mint}</div>
+                  <button onClick={() => navigator.clipboard?.writeText(token.mint)}
+                    style={{ background:`${token.accent}12`, border:`1px solid ${token.accent}30`, borderRadius:8, padding:'5px 12px', color:token.accent, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
+                    Copy CA
                   </button>
                 </div>
               </Section>
 
-              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              {/* Creator */}
+              {token.creatorVerified && token.creator && (
+                <Section title="CREATOR">
+                  <div style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:10 }}>
+                    {token.creatorPfp && <img src={token.creatorPfp} alt="" style={{ width:32, height:32, borderRadius:'50%', objectFit:'cover' }} onError={e=>e.target.style.display='none'}/>}
+                    <div>
+                      <div style={{ fontSize:13, color:'#00ff88', fontWeight:700, fontFamily:'monospace' }}>{token.creator} ✓</div>
+                      {token.feeShare > 0 && <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', fontFamily:'monospace' }}>{token.feeShare}% fee share</div>}
+                      {token.lifetimeFeesSol > 0 && <div style={{ fontSize:11, color:'rgba(255,200,0,0.8)', fontFamily:'monospace' }}>{token.lifetimeFeesSol.toLocaleString()} SOL lifetime fees</div>}
+                    </div>
+                  </div>
+                </Section>
+              )}
+
+              <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => openExternal(`https://rugcheck.xyz/tokens/${token.mint}`)}
-                  style={{ flex: 1, padding: '10px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace' }}>
+                  style={{ flex:1, padding:'9px', borderRadius:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.6)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
                   Rugcheck →
                 </button>
                 <button onClick={() => openExternal(`https://solscan.io/token/${token.mint}`)}
-                  style={{ flex: 1, padding: '10px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'monospace' }}>
+                  style={{ flex:1, padding:'9px', borderRadius:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.6)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
                   Solscan →
                 </button>
               </div>
-
-              <div style={{ height: 20 }} />
-            </div>
+            </>
           )}
 
           {/* TWEETS */}
-          {tab === 'tweets' && (
-            <div style={{ overflowY: 'auto', height: '100%', padding: '14px 16px' }}>
-              <Section title={`X MENTIONS · $${token.symbol}`}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {(token.tweets || []).map((t, i) => (
-                    <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: '12px 14px', border: `1px solid ${token.accent}18` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 12, color: token.accent, fontWeight: 700, fontFamily: 'monospace' }}>{t.a}</span>
-                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>{t.l?.toLocaleString()} ♥</span>
+          {!loading && tab === 'tweets' && (
+            <>
+              {token.sentiment && (
+                <Section title="X SENTIMENT">
+                  <div style={{ background:`rgba(0,255,136,0.06)`, borderRadius:12, padding:'12px 14px', border:'1px solid rgba(0,255,136,0.2)', marginBottom:12 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                      <div style={{ fontSize:13, color:'#fff' }}>
+                        {token.sentiment.label === 'bullish' ? '🟢 Bullish' : token.sentiment.label === 'bearish' ? '🔴 Bearish' : '🟡 Neutral'}
                       </div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>{t.t}</div>
+                      <div style={{ fontSize:18, fontWeight:900, color:'#00ff88', fontFamily:'JetBrains Mono, monospace' }}>
+                        {Math.round(token.sentiment.score * 100)}%
+                      </div>
+                    </div>
+                    <div style={{ height:4, background:'rgba(255,255,255,0.07)', borderRadius:99, overflow:'hidden' }}>
+                      <div style={{ height:'100%', borderRadius:99, background:'#00ff88', width:`${token.sentiment.score * 100}%`, boxShadow:'0 0 8px #00ff8880' }}/>
+                    </div>
+                  </div>
+                </Section>
+              )}
+
+              {token.alerts?.length > 0 && (
+                <Section title="RISK SIGNALS">
+                  {token.alerts.map((a,i) => (
+                    <div key={i} style={{ background:'rgba(239,68,68,0.08)', borderRadius:12, padding:'10px 12px', border:'1px solid rgba(239,68,68,0.25)', marginBottom:8 }}>
+                      <div style={{ fontSize:11, color:'#ef4444', fontWeight:700, fontFamily:'monospace', marginBottom:3 }}>🚨 {a.type?.toUpperCase()}</div>
+                      <div style={{ fontSize:12, color:'rgba(255,255,255,0.7)' }}>{a.msg}</div>
                     </div>
                   ))}
+                </Section>
+              )}
 
-                  {/* Sentiment summary */}
-                  {token.sentiment && (
-                    <div style={{ background: `rgba(0,255,136,0.06)`, borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(0,255,136,0.2)', marginTop: 4 }}>
-                      <div style={{ fontSize: 11, color: 'rgba(0,255,136,0.8)', fontWeight: 700, fontFamily: 'monospace', marginBottom: 4 }}>AI SENTIMENT ANALYSIS</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: 13, color: '#fff' }}>
-                          {token.sentiment.label === 'bullish' ? '🟢 Bullish' : token.sentiment.label === 'bearish' ? '🔴 Bearish' : '🟡 Neutral'}
-                        </div>
-                        <div style={{ fontSize: 15, fontWeight: 900, color: '#00ff88', fontFamily: 'JetBrains Mono, monospace' }}>
-                          {Math.round(token.sentiment.score * 100)}%
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 8, height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 99, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', borderRadius: 99, background: '#00ff88', width: `${token.sentiment.score * 100}%`, boxShadow: '0 0 8px #00ff8880' }} />
-                      </div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', marginTop: 6 }}>
-                        Sorsa API · min 500 likes filter · real-time
-                      </div>
-                    </div>
-                  )}
+              {/* Attention tag */}
+              <div style={{ background:`${token.accent}0c`, borderRadius:12, padding:'12px 14px', border:`1px solid ${token.accent}25` }}>
+                <div style={{ fontSize:11, color:token.accent, fontWeight:700, fontFamily:'monospace', marginBottom:6 }}>WHY THIS TOKEN</div>
+                <div style={{ fontSize:13, color:'rgba(255,255,255,0.7)', lineHeight:1.5 }}>{token.attentionTag}</div>
+                {token.signalEdge && <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:6, fontFamily:'monospace' }}>{token.signalEdge}</div>}
+              </div>
 
-                  {token.alerts?.length > 0 && (
-                    <div style={{ background: 'rgba(239,68,68,0.08)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(239,68,68,0.25)' }}>
-                      <div style={{ fontSize: 11, color: '#ef4444', fontWeight: 700, fontFamily: 'monospace', marginBottom: 4 }}>🚨 RISK SIGNAL</div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{token.alerts[0].msg}</div>
-                    </div>
-                  )}
-                </div>
-              </Section>
-              <div style={{ height: 20 }} />
-            </div>
+              <button onClick={() => openExternal(`https://twitter.com/search?q=%24${token.symbol}&f=live`)}
+                style={{ width:'100%', marginTop:12, padding:'10px', borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.6)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
+                View live tweets on X →
+              </button>
+            </>
           )}
+
+          <div style={{ height:20 }}/>
         </div>
       </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
