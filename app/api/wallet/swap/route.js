@@ -5,7 +5,7 @@
 import crypto from 'crypto';
 
 const WALLET_SEED = process.env.WALLET_SEED_SECRET || 'drain_fun_v1_wallet_seed_2026_secure';
-const LOCAL_RPC = 'https://api.devnet.solana.com'; // REAL Solana devnet
+const LOCAL_RPC = 'https://api.devnet.solana.com';
 // Fee collector wallet (the app's treasury on localnet)
 const FEE_WALLET = 'DssYUxCJ7AiwUGEatLNNAyoxmiD7xJojDSiXNqwxm2CZ';
 const FEE_RATE = 0.0075; // 0.75%

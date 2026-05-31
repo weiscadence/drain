@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { Confetti, ApedIn, RuggedScreen, HypeNotification, X2Button, PnlTicker, PositionEmoji, HYPE_NOTIFS } from '../../components/CasinoLayer';
+import SplashScreen from '../../components/SplashScreen';
 const FundModal = lazy(() => import('../../components/FundModal'));
 const Onboarding = lazy(() => import('../../components/Onboarding'));
 
@@ -872,6 +873,7 @@ function BottomNav({ tab, setTab }) {
 // ── ROOT ──────────────────────────────────────────────────
 export default function DrainMiniApp() {
   useTelegramApp();
+  const [showSplash, setShowSplash] = useState(true);
   const [tab, setTab] = useState('swipe');
   const [flash, setFlash] = useState(null);
   const [shake, setShake] = useState(false);
@@ -911,6 +913,11 @@ export default function DrainMiniApp() {
       setTimeout(() => setBurst(null), 700);
     }
   }, []);
+
+  // Splash screen on first render
+  if (showSplash) {
+    return <SplashScreen onDone={() => setShowSplash(false)} />;
+  }
 
   // Show nothing while checking (avoids flash of onboarding on repeat visits)
   if (checkingProfile) {
