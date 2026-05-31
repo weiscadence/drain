@@ -61,7 +61,7 @@ Swipe right to buy, left to skip. Every card packs real alpha:
 
 - **Telegram**: [@DrainFunbot](https://t.me/DrainFunbot)
 - **Web**: [drainfun.xyz/swipe](https://drainfun.xyz/swipe)
-- **Token**: [bags.fm/token/CcRLnH...](https://bags.fm/token/CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS)
+- **Token**: [bags.fm/token/CcRLnH...](https://bags.fm/weiscadence)
 - **GitHub**: [github.com/weiscadence/drain](https://github.com/weiscadence/drain)
 
 ## Setup

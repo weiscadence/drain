@@ -114,7 +114,7 @@ export default function Home() {
               Start Swiping →
             </Link>
             <a
-              href="https://bags.fm/token/CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS"
+              href="https://bags.fm/weiscadence"
               target="_blank"
               rel="noopener"
               className="border border-white/20 text-white font-bold px-8 py-4 rounded-2xl hover:bg-white/5 transition inline-block"
@@ -230,7 +230,7 @@ export default function Home() {
           </div>
           <p className="text-gray-500 text-sm">
             $DRAIN token live on Bags.fm with fee-sharing enabled.{' '}
-            <a href="https://bags.fm/token/CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS" target="_blank" rel="noopener" className="text-purple-400 hover:underline">
+            <a href="https://bags.fm/weiscadence" target="_blank" rel="noopener" className="text-purple-400 hover:underline">
               Trade it →
             </a>
           </p>
