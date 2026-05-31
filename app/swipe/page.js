@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { Confetti, ApedIn, RuggedScreen, HypeNotification, X2Button, PnlTicker, PositionEmoji, HYPE_NOTIFS } from '../../components/CasinoLayer';
 const FundModal = lazy(() => import('../../components/FundModal'));
 const Onboarding = lazy(() => import('../../components/Onboarding'));
 
@@ -281,8 +282,19 @@ function SwipeCard({ token, onSwipe, walletAddress }) {
 
   const handleLeft = useCallback(() => onSwipe('left', token), [onSwipe, token]);
   const handleRight = useCallback(() => {
-    // Show real buy modal instead of fake swap
-    setShowBuy(true);
+    // SLAM animation then show buy
+    if (el.current) {
+      el.current.style.transition = 'transform 0.15s cubic-bezier(0.34,1.56,0.64,1)';
+      el.current.style.transform = 'scale(1.08) translateY(-8px)';
+      setTimeout(() => {
+        if (el.current) {
+          el.current.style.transform = 'scale(1) translateY(0)';
+        }
+        setShowBuy(true);
+      }, 150);
+    } else {
+      setShowBuy(true);
+    }
   }, []);
 
   const { el, offset, onTouchStart, onTouchMove, onTouchEnd } = useSwipe(handleLeft, handleRight);
@@ -390,20 +402,8 @@ function SwipeCard({ token, onSwipe, walletAddress }) {
           {token.creatorVerified && <span style={{ fontSize:10, padding:'3px 8px', borderRadius:6, background:'#00ff8815', color:'#00ff88', border:'1px solid #00ff8830', fontWeight:700, fontFamily:'monospace' }}>✓ {token.creator}</span>}
         </div>
 
-        {/* Chart toggle */}
-        <button
-          onClick={() => setShowChart(s => !s)}
-          style={{ background:`${token.accent}12`, border:`1px solid ${token.accent}35`, borderRadius:10, padding:'7px 12px', color:token.accent, fontSize:11, fontWeight:700, fontFamily:'monospace', cursor:'pointer', textAlign:'left', letterSpacing:'0.05em' }}
-          onTouchStart={e => e.stopPropagation()}
-          onTouchEnd={e => { e.stopPropagation(); setShowChart(s => !s); }}
-        >
-          {showChart ? '↑ hide chart' : '📊 show chart →'}
-        </button>
-
-        {showChart && <DexChart pairAddress={token.pairAddress} accent={token.accent} />}
-
         {/* Top tweet */}
-        {!showChart && token.tweets?.[0] && (
+        {token.tweets?.[0] && (
           <div style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'8px 10px', border:`1px solid ${token.accent}18` }}>
             <div style={{ fontSize:10, color:token.accent, fontWeight:700, marginBottom:3, fontFamily:'monospace' }}>{token.tweets[0].a} · {token.tweets[0].l.toLocaleString()} ♥</div>
             <div style={{ fontSize:12, color:'rgba(255,255,255,0.65)', lineHeight:1.4 }}>{token.tweets[0].t}</div>
@@ -446,6 +446,31 @@ function SwipeCard({ token, onSwipe, walletAddress }) {
         </button>
       </div>
 
+      {/* X2 or Nothing */}
+      <div style={{ padding:'0 13px 13px' }}
+        onTouchStart={e => e.stopPropagation()}
+        onTouchEnd={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
+      >
+        <X2Button
+          disabled={false}
+          onResult={(win) => {
+            if (win) {
+              // x2: open buy modal with note
+              setShowBuy(true);
+            }
+            // nothing: just skip with funny message
+            if (!win) {
+              if (el.current) {
+                el.current.style.transition = 'transform 0.4s ease';
+                el.current.style.transform = 'translateX(-170vw) rotate(-15deg)';
+                setTimeout(() => onSwipe('left', token), 380);
+              }
+            }
+          }}
+        />
+      </div>
+
       {/* Detail sheet */}
       {showDetail && (
         <Suspense fallback={null}>
@@ -472,11 +497,24 @@ function SwipeCard({ token, onSwipe, walletAddress }) {
 }
 
 // ── SWIPE TAB ─────────────────────────────────────────────
-function SwipeTab({ onEffect, walletAddress }) {
+function SwipeTab({ onEffect, walletAddress, positions }) {
   const [idx, setIdx] = useState(0);
   const [stats, setStats] = useState({ buys:0, skips:0 });
   const [tokens, setTokens] = useState(TOKENS);
   const [toast, setToast] = useState(null);
+  const [confetti, setConfetti] = useState(false);
+  const [apedIn, setApedIn] = useState(null); // token symbol
+  const [hypeNotif, setHypeNotif] = useState(null);
+
+  // Random hype notifications
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() < 0.3) { // 30% chance every 45s
+        setHypeNotif(HYPE_NOTIFS[Math.floor(Math.random() * HYPE_NOTIFS.length)]);
+      }
+    }, 45000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     fetch('/api/tokens?limit=12').then(r=>r.json()).then(d => {
@@ -506,8 +544,17 @@ function SwipeTab({ onEffect, walletAddress }) {
   const handleSwipe = useCallback((dir, token) => {
     onEffect(dir, token.accent);
     setStats(s => ({ buys: s.buys+(dir==='right'?1:0), skips: s.skips+(dir==='left'?1:0) }));
-    if (dir === 'right') { setToast(`✅ Testnet: $${token.symbol}`); setTimeout(()=>setToast(null), 2500); }
-    setTimeout(() => setIdx(i => i+1), 300);
+    if (dir === 'right') {
+      // CASINO MODE: confetti + APED IN
+      setConfetti(true);
+      setApedIn(token.symbol);
+      setTimeout(() => setConfetti(false), 2000);
+      // Random hype after buy
+      setTimeout(() => {
+        setHypeNotif(HYPE_NOTIFS[Math.floor(Math.random() * HYPE_NOTIFS.length)]);
+      }, 3000);
+    }
+    setTimeout(() => setIdx(i => i+1), dir === 'right' ? 600 : 300);
   }, [onEffect]);
 
   const cur = tokens[idx];
@@ -516,13 +563,19 @@ function SwipeTab({ onEffect, walletAddress }) {
 
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
+      {/* Casino overlays */}
+      <Confetti active={confetti} />
+      <ApedIn show={!!apedIn} tokenSymbol={apedIn} onDone={() => setApedIn(null)} />
+      <HypeNotification show={!!hypeNotif} message={hypeNotif} onDone={() => setHypeNotif(null)} />
+
       <div style={{ padding:'8px 15px 4px', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
         <div style={{ fontFamily:'JetBrains Mono, monospace', fontWeight:900, fontSize:18, letterSpacing:-1 }}>
-          <span style={{ color:'#fff' }}>drain</span><span style={{ color:'#a855f7', textShadow:'0 0 16px #a855f7' }}>.fun</span>
+          <span style={{ color:'#fff' }}>drain</span><span style={{ color:'#ff6600', textShadow:'0 0 16px #ff660080' }}>.fun</span>
+          <span style={{ fontSize:10, color:'rgba(255,100,0,0.6)', marginLeft:6, fontFamily:'monospace' }}>🎰</span>
         </div>
-        <div style={{ display:'flex', gap:12, fontFamily:'JetBrains Mono, monospace', fontWeight:800, fontSize:13 }}>
-          <span style={{ color:'#00ff88', textShadow:'0 0 8px #00ff88' }}>♥ {stats.buys}</span>
-          <span style={{ color:'#ff6666', textShadow:'0 0 8px #ff666680' }}>✕ {stats.skips}</span>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <PnlTicker positions={positions || []} />
+          <span style={{ color:'#00ff88', fontWeight:800, fontSize:12, fontFamily:'JetBrains Mono, monospace' }}>♥ {stats.buys}</span>
         </div>
       </div>
       <div style={{ padding:'2px 15px 8px', flexShrink:0 }}>
@@ -638,6 +691,28 @@ function WalletTab({ profile }) {
   const balanceDisplay = balanceLoading ? '...' : solBalance !== null ? solBalance.toFixed(4) : '0.0000';
   const usdDisplay = balanceLoading ? '...' : usdValue !== null ? `$${usdValue.toFixed(2)}` : '$0.00';
 
+  // Load real positions from localStorage
+  const [positions, setPositions] = useState([]);
+  useEffect(() => {
+    try {
+      const tgId = window?.Telegram?.WebApp?.initDataUnsafe?.user?.id || profile?.telegramId || 'preview';
+      const key = `drain_positions_${tgId}`;
+      const stored = JSON.parse(localStorage.getItem(key) || '[]');
+      setPositions(stored);
+    } catch { setPositions([]); }
+  }, []);
+
+  // Alerts only for tokens you hold
+  const heldSymbols = new Set(positions.map(p => p.token));
+  const ALL_ALERTS = [
+    { type:'rug', token:'BURNIE', msg:'KOL 890K followers calling larp. Verify before adding.', color:'#ef4444' },
+    { type:'alpha', token:'PENGUIN', msg:'255 smart wallets. No CT noise yet.', color:'#00ff88' },
+    { type:'alpha', token:'DRAIN', msg:'87 smart wallets loading quietly.', color:'#a855f7' },
+  ];
+  const alerts = positions.length > 0
+    ? ALL_ALERTS.filter(a => heldSymbols.has(a.token))
+    : []; // no positions = no alerts
+
   const connectPhantom = async () => {
     try {
       const provider = window?.phantom?.solana || window?.solana;
@@ -663,12 +738,6 @@ function WalletTab({ profile }) {
       console.error('Phantom connect failed:', e);
     }
   };
-  const alerts = [
-    { type:'rug', token:'BURNIE', msg:'KOL 890K followers calling larp. Verify before adding.', color:'#ef4444' },
-    { type:'alpha', token:'PENGUIN', msg:'255 smart wallets. No CT noise yet.', color:'#00ff88' },
-    { type:'alpha', token:'DRAIN', msg:'87 smart wallets loading quietly.', color:'#a855f7' },
-  ];
-
   return (
     <div style={{ flex:1, overflowY:'auto', padding:'10px 13px 0', position:'relative' }}>
       <GeoBg accent="#a855f7"/>
@@ -704,46 +773,57 @@ function WalletTab({ profile }) {
           <span>💳</span> Add Funds
         </button>
 
-        {/* Alerts */}
-        <div style={{ fontSize:9, letterSpacing:'0.22em', color:'rgba(255,255,255,0.2)', marginBottom:7, fontFamily:'monospace' }}>ALERTS</div>
-        <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:14 }}>
-          {alerts.map((a,i) => (
-            <div key={i} style={{ background:`${a.color}0c`, border:`1px solid ${a.color}30`, borderRadius:12, padding:'9px 12px', display:'flex', gap:9, alignItems:'flex-start' }}>
-              <span style={{ fontSize:16 }}>{a.type==='rug'?'⚠️':'⚡'}</span>
-              <div>
-                <div style={{ fontSize:10, color:a.color, fontWeight:700, fontFamily:'monospace', marginBottom:2 }}>${a.token}</div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.62)', lineHeight:1.4 }}>{a.msg}</div>
-              </div>
+        {/* Alerts — only for tokens you hold */}
+        {alerts.length > 0 && (
+          <>
+            <div style={{ fontSize:9, letterSpacing:'0.22em', color:'rgba(255,255,255,0.2)', marginBottom:7, fontFamily:'monospace' }}>ALERTS FOR YOUR POSITIONS</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:14 }}>
+              {alerts.map((a,i) => (
+                <div key={i} style={{ background:`${a.color}0c`, border:`1px solid ${a.color}30`, borderRadius:12, padding:'9px 12px', display:'flex', gap:9, alignItems:'flex-start' }}>
+                  <span style={{ fontSize:16 }}>{a.type==='rug'?'⚠️':'⚡'}</span>
+                  <div>
+                    <div style={{ fontSize:10, color:a.color, fontWeight:700, fontFamily:'monospace', marginBottom:2 }}>${a.token}</div>
+                    <div style={{ fontSize:11, color:'rgba(255,255,255,0.62)', lineHeight:1.4 }}>{a.msg}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
 
-        {/* Positions */}
+        {/* Positions — real buys from swipe actions */}
         <div style={{ fontSize:9, letterSpacing:'0.22em', color:'rgba(255,255,255,0.2)', marginBottom:7, fontFamily:'monospace' }}>POSITIONS</div>
         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {TRADES.map((t,i) => (
-            <div key={i} style={{ background:'rgba(255,255,255,0.025)', border:`1px solid ${t.color}20`, borderRadius:14, padding:'12px 14px', cursor:'pointer' }}
+          {positions.length === 0 && (
+            <div style={{ textAlign:'center', padding:'24px 0', color:'rgba(255,255,255,0.3)', fontSize:12, fontFamily:'monospace' }}>
+              No positions yet — swipe right to buy a token
+            </div>
+          )}
+          {positions.map((t,i) => {
+            const color = '#22c55e'; // all buys are green for now
+            return (
+            <div key={i} style={{ background:'rgba(255,255,255,0.025)', border:`1px solid ${color}20`, borderRadius:14, padding:'12px 14px', cursor:'pointer' }}
               onClick={() => setExpandedTrade(expandedTrade === i ? null : i)}
             >
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-                <div>
-                  <div style={{ fontSize:16, fontWeight:900, color:'#fff', fontFamily:'JetBrains Mono, monospace' }}>${t.token}</div>
-                  <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginTop:1 }}>{t.side} · {t.sol} SOL · {t.time}</div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <PositionEmoji pnlPct={t.pnlPct || 0} />
+                  <div>
+                    <div style={{ fontSize:16, fontWeight:900, color:'#fff', fontFamily:'JetBrains Mono, monospace' }}>${t.token}</div>
+                    <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginTop:1 }}>BUY · {t.solAmount} SOL · {t.timeLabel || 'just now'}</div>
+                  </div>
                 </div>
-                <div style={{ fontSize:17, fontWeight:900, color:t.color, fontFamily:'JetBrains Mono, monospace', textShadow:`0 0 12px ${t.color}60` }}>{t.pnl>=0?'+':''}{t.pnl}%</div>
+                <div style={{ textAlign:'right' }}>
+                  <div style={{ fontSize:13, fontWeight:900, color:'rgba(0,255,136,0.6)', fontFamily:'JetBrains Mono, monospace' }}>devnet</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>~{parseInt(t.outAmount||0).toLocaleString()}</div>
+                </div>
               </div>
-              <Spark data={t.data} color={t.color} w={256} h={32}/>
-              {expandedTrade === i && t.pairAddress && (
-                <div style={{ marginTop:10 }}>
-                  <DexChart pairAddress={t.pairAddress} accent={t.color}/>
-                </div>
-              )}
-              {expandedTrade === i && !t.pairAddress && (
-                <div style={{ marginTop:8, fontSize:10, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', textAlign:'center', padding:'8px 0' }}>chart data coming soon</div>
-              )}
+              {t.sig && <div style={{ fontSize:9, color:'rgba(255,255,255,0.2)', fontFamily:'monospace', marginTop:4 }}>Tx: {t.sig.slice(0,12)}...</div>}
             </div>
-          ))}
+            );
+          })}
         </div>
+
         <div style={{ marginTop:14, padding:'10px 14px', background:'rgba(255,255,255,0.025)', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
             <div style={{ fontSize:9, letterSpacing:'0.2em', color:'rgba(255,255,255,0.15)', marginBottom:3, fontFamily:'monospace' }}>WALLET</div>
@@ -884,10 +964,10 @@ export default function DrainMiniApp() {
         background:'#080810',
         display:'flex', flexDirection:'column', overflow:'hidden',
         fontFamily:'JetBrains Mono, -apple-system, sans-serif', color:'#fff',
-        paddingTop:'env(safe-area-inset-top, 0px)',
+        paddingTop:'max(env(safe-area-inset-top, 0px), 52px)',
         animation: shake ? 'shake 0.38s ease-out' : 'none',
       }}>
-        {tab === 'swipe'  && <SwipeTab onEffect={handleEffect} walletAddress={profile?.walletAddress}/>}
+        {tab === 'swipe'  && <SwipeTab onEffect={handleEffect} walletAddress={profile?.walletAddress} positions={profile ? (() => { try { const k=`drain_positions_${profile.telegramId||'preview'}`; return JSON.parse(localStorage.getItem(k)||'[]'); } catch { return []; }})() : []}/>}
         {tab === 'feed'   && <FeedTab/>}
         {tab === 'wallet' && <WalletTab profile={profile}/>}
         <BottomNav tab={tab} setTab={setTab}/>

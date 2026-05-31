@@ -10,11 +10,7 @@ export async function GET(request) {
     return Response.json({ error: 'address required' }, { status: 400 });
   }
 
-  const RPC = network === 'mainnet'
-    ? 'https://api.mainnet-beta.solana.com'
-    : network === 'localnet'
-    ? 'http://localhost:8899'
-    : 'http://localhost:8899'; // using local validator (devnet faucet rate-limited)
+  const RPC = network === 'mainnet' ? 'https://api.mainnet-beta.solana.com' : 'https://api.devnet.solana.com';
 
   try {
     // Get SOL balance
