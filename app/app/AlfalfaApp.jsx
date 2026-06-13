@@ -117,7 +117,7 @@ const TABS = [
   { id:'overview', emoji:'👁',  label:'Overview' },
   { id:'prop',     emoji:'🏆', label:'Prop' },
   { id:'pred',     emoji:'🎲', label:'Predict' },
-  // Smart$ tab hidden — internal data, too noisy for user
+  { id:'smart',    emoji:'🐋', label:'Smart$' },
   { id:'memecoin', emoji:'🎯', label:'Coins' },
   { id:'hip3',     emoji:'⚡', label:'HIP-3' },
   // Wallets tab hidden — internal data
@@ -1487,7 +1487,7 @@ export default function App() {
         {tab==='overview' && <OverviewTab calls={data.calls} prices={data.prices} fg={data.fg} paperData={data.paper} gmgnSignals={data.gmgnSignals} funding={data.funding} orderBook={data.orderBook} />}
         {tab==='prop'     && <PropTab propData={data.propData} calls={data.calls} smartPositions={data.smartMoney?.wallets} />}
         {tab==='pred'     && <PredictTab calls={data.calls} prices={data.prices} />}
-        {false && tab==='smart' && <SmartMoneyTab calls={data.calls} smartMoney={data.smartMoney} />}
+        {tab==='smart'    && <SmartMoneyTab calls={data.calls} smartMoney={data.smartMoney} />}
         {tab==='memecoin' && <LaneTab lane="memecoin" calls={data.calls} />}
         {tab==='wallets'  && <WalletsTab wallets={data.wallets} />}
         {tab==='hip3'     && <LaneTab lane="hip3" calls={data.calls} extra={

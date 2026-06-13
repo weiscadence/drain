@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function FundModal({ onClose, walletAddress }) {
   const [step, setStep] = useState('idle'); // idle | loading | success | error
@@ -29,6 +29,8 @@ export default function FundModal({ onClose, walletAddress }) {
       if (!data.success) throw new Error(data.error || 'Airdrop failed');
       setResult(data);
       setStep('success');
+      // Auto-close after 2.5s so balance refreshes immediately
+      setTimeout(onClose, 2500);
     } catch (e) {
       setError(e.message);
       setStep('error');

@@ -18,26 +18,29 @@ async function getGmgnTokenInfo(mint) {
   } catch { return null; }
 }
 
-async function getGmgnTopHolders(mint) {
-  try {
-    const ts = Math.floor(Date.now() / 1000);
-    const res = await fetch(
-      `https://openapi.gmgn.ai/v1/market/token_top_holders?chain=sol&address=${mint}&limit=15&timestamp=${ts}&client_id=drain-${Math.random().toString(36).slice(2)}`,
-      { headers: { 'X-APIKEY': GMGN_KEY }, signal: AbortSignal.timeout(5000) }
-    );
-    if (!res.ok) return [];
-    const d = await res.json();
-    if (d.code !== 0) return [];
-    const list = d?.data?.list || [];
-    return list.map(h => ({
-      address: (h.address || h.account_address || '').slice(0,8) + '...',
-      pct: parseFloat(h.amount_percentage || h.percent || 0),
-      isSmart: (h.wallet_tag_v2 && h.wallet_tag_v2.includes('smart')) || h.is_smart_degen || false,
-      isTeam: h.addr_type === 1 || h.tag === 'team',
-      value: parseFloat(h.usd_value || 0),
-      type: h.addr_type === 1 ? 'team' : h.is_smart_degen ? 'smart' : 'holder',
+// Extract holders from rugcheck full report (free, no auth needed)
+// rugFull is passed in after being fetched; call this AFTER getRugcheckFull
+function extractHoldersFromRugcheck(rugFull) {
+  if (!rugFull?.topHolders?.length) return [];
+  // Known DEX/LP program owners to exclude from holder display
+  const DEX_OWNERS = new Set([
+    '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1', // Raydium
+    'FEZGCABhqHJEbFvhTAjNR5sKDXsqMBLNpJAMEcsTQLuN',
+    '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', // Orca
+    'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc',
+    '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',  // Pump.fun
+  ]);
+  return rugFull.topHolders
+    .filter(h => !DEX_OWNERS.has(h.owner || ''))
+    .slice(0, 12)
+    .map((h, i) => ({
+      address: (h.address || '').slice(0, 8) + '...',
+      pct: parseFloat(h.pct || 0),
+      isSmart: h.insider === true,
+      isTeam: i === 0 && h.pct > 20, // largest holder likely team if > 20%
+      value: 0,
+      type: h.insider ? 'smart' : i < 3 ? 'top' : 'holder',
     }));
-  } catch { return []; }
 }
 
 async function getSmartWalletCount(mint) {
@@ -70,25 +73,45 @@ export async function GET(request) {
   const mint = searchParams.get('mint');
   if (!mint) return Response.json({ error: 'mint required' }, { status: 400 });
 
-  const [gmgnInfo, holders, smartCount, rugFull] = await Promise.all([
+  const [gmgnInfo, smartCount, rugFull] = await Promise.all([
     getGmgnTokenInfo(mint),
-    getGmgnTopHolders(mint),
     getSmartWalletCount(mint),
     getRugcheckFull(mint),
   ]);
 
-  // Build holder distribution for bubble visualization
-  const holderBubbles = holders.slice(0, 15).map(h => ({
-    address: h.address?.slice(0, 8) + '...',
-    pct: parseFloat(h.percentage || h.pct || 0),
-    isSmart: (h.wallet_tag_v2 && h.wallet_tag_v2.includes('smart')) || h.is_smart_degen || false,
-    isTeam: h.tag === 'team' || h.is_creator,
-    value: parseFloat(h.usd_value || 0),
-    type: h.tag || (h.is_smart_degen ? 'smart' : 'holder'),
-  }));
+  // Use rugcheck topHolders — free, no auth, includes pct field
+  const holderBubbles = extractHoldersFromRugcheck(rugFull);
 
-  // Top holder concentration
+  // Top holder concentration (exclude DEX programs already filtered above)
   const top10Pct = holderBubbles.slice(0, 10).reduce((a, h) => a + h.pct, 0);
+
+  // Rugcheck score interpretation:
+  // Full report 'score' = cumulative RISK points (higher = MORE risky)
+  // Convert to human-readable safety level
+  let rugcheckData = null;
+  if (rugFull) {
+    const riskScore = rugFull.score || 0;
+    const risks = (rugFull.risks || []).filter(r => r.level !== 'info');
+    const criticalRisks = risks.filter(r => r.level === 'danger' || r.score > 500);
+    const lpLocked = rugFull.markets?.[0]?.lp?.lpLockedPct || 0;
+    // Safety label based on risk accumulation
+    const safetyLabel = criticalRisks.length > 0 ? '⚠ HIGH RISK'
+      : risks.length > 3 ? '⚡ MEDIUM RISK'
+      : risks.length <= 1 && lpLocked > 80 ? '✓ LOW RISK'
+      : '⚡ MEDIUM RISK';
+    const safetyGood = criticalRisks.length === 0 && risks.length <= 2;
+    rugcheckData = {
+      score: riskScore,
+      safetyLabel,
+      safetyGood,
+      lpLocked,
+      mutable: rugFull.tokenMeta?.mutable || false,
+      mintAuthority: rugFull.tokenMeta?.mintAuthority !== null,
+      freezeAuthority: rugFull.tokenMeta?.freezeAuthority !== null,
+      risks: risks.slice(0, 4),
+      riskCount: risks.length,
+    };
+  }
 
   return Response.json({
     mint,
@@ -102,13 +125,6 @@ export async function GET(request) {
     volume24h: gmgnInfo?.volume || 0,
     mcap: gmgnInfo?.market_cap || 0,
     liquidity: gmgnInfo?.liquidity || 0,
-    rugcheck: rugFull ? {
-      score: rugFull.score || 0,
-      lpLocked: rugFull.markets?.[0]?.lp?.lpLockedPct || 0,
-      mutable: rugFull.tokenMeta?.mutable || false,
-      mintAuthority: rugFull.tokenMeta?.mintAuthority !== null,
-      freezeAuthority: rugFull.tokenMeta?.freezeAuthority !== null,
-      risks: (rugFull.risks || []).slice(0, 4),
-    } : null,
+    rugcheck: rugcheckData,
   });
 }

@@ -18,29 +18,41 @@ function savePosition(token, solAmount, outAmount, sig) {
     const tgId = getTelegramId();
     const key = `drain_positions_${tgId}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    // Only store plain serializable primitives — never the full token object
+    // (token can contain Solana objects with circular refs via component state)
     const pos = {
-      token: token.symbol,
-      tokenMint: token.mint,
-      tokenName: token.name,
+      token: String(token.symbol || ''),
+      tokenMint: String(token.mint || ''),
+      tokenName: String(token.name || ''),
       side: 'BUY',
-      solAmount,
-      outAmount,
+      solAmount: Number(solAmount) || 0,
+      outAmount: Number(outAmount) || 0,
       pnlPct: 0,
       pnlSol: 0,
-      sig,
+      sig: String(sig || ''),
       timestamp: Date.now(),
       timeLabel: 'just now',
       color: '#22c55e',
-      priceAtBuy: token.price || 0,
-      priceHistory: [100], // will grow with price updates
-      changeAtBuy: token.change || 0,
+      priceAtBuy: Number(token.price) || 0,
+      priceHistory: [100],
+      changeAtBuy: Number(token.change) || 0,
     };
     existing.unshift(pos);
-    localStorage.setItem(key, JSON.stringify(existing.slice(0, 20))); // keep last 20
-  } catch {}
+    // Use try/catch on stringify separately so we can debug if it still fails
+    const serialized = JSON.stringify(existing.slice(0, 20));
+    localStorage.setItem(key, serialized);
+  } catch (e) {
+    // Last resort: save minimal record
+    try {
+      const tgId = getTelegramId();
+      const key = `drain_positions_${tgId}`;
+      const min = [{ token: String(token?.symbol||''), solAmount: Number(solAmount)||0, timestamp: Date.now(), pnlPct: 0, priceHistory: [100] }];
+      localStorage.setItem(key, JSON.stringify(min));
+    } catch {}
+  }
 }
 
-export default function BuyModal({ token, onClose, telegramId, walletAddress }) {
+export default function BuyModal({ token, onClose, onSuccess, telegramId, walletAddress }) {
   const [solAmount, setSolAmount] = useState(0.1);
   const [step, setStep] = useState('amount'); // amount | swapping | success | error
   const [result, setResult] = useState(null);
@@ -70,6 +82,9 @@ export default function BuyModal({ token, onClose, telegramId, walletAddress }) 
   }, [solAmount, token?.mint]);
 
   const executeSwap = async (x2 = false, nothingLoss = false) => {
+    // Guard: coerce x2/nothingLoss to booleans — onClick passes MouseEvent as first arg otherwise
+    if (x2 !== true) x2 = false;
+    if (nothingLoss !== true) nothingLoss = false;
     setStep('swapping');
     setError(null);
     try {
@@ -77,16 +92,23 @@ export default function BuyModal({ token, onClose, telegramId, walletAddress }) 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          telegramId: tgId,
-          tokenMint: token.mint,
-          tokenSymbol: token.symbol,
-          solAmount,
+          telegramId: String(tgId),
+          tokenMint: String(token?.mint || ''),
+          tokenSymbol: String(token?.symbol || ''),
+          solAmount: Number(solAmount) || 0.1,
           action: 'buy',
-          x2,
+          x2: x2 === true,
         }),
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Swap failed');
+      if (!data.success) {
+        if (nothingLoss) {
+          setResult({ nothing: true });
+          setStep('success');
+          return;
+        }
+        throw new Error(data.error || 'Swap failed');
+      }
       
       if (nothingLoss) {
         // Wheel said nothing — took their SOL, show loss screen
@@ -98,8 +120,13 @@ export default function BuyModal({ token, onClose, telegramId, walletAddress }) 
       }
       setStep('success');
     } catch (e) {
-      setError(e.message);
-      setStep('error');
+      if (nothingLoss) {
+        setResult({ nothing: true });
+        setStep('success');
+      } else {
+        setError(e.message);
+        setStep('error');
+      }
     }
   };
 
@@ -246,6 +273,10 @@ export default function BuyModal({ token, onClose, telegramId, walletAddress }) 
                   <div style={{ fontSize:22, fontWeight:900, color:'#ff4444', fontFamily:'JetBrains Mono, monospace', marginBottom:6, textShadow:'0 0 20px #ff444480' }}>WHEEL SAID NOTHING 💀</div>
                   <div style={{ fontSize:13, color:'rgba(255,255,255,0.5)', fontFamily:'monospace', marginBottom:4 }}>{result?.solAmount?.toFixed(3)} SOL gone. rugged by math.</div>
                   <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginBottom:16 }}>"at least you have cool screenshots"</div>
+                  <button onClick={() => onSuccess ? onSuccess({ nothing: true }) : onClose()}
+                    style={{ padding:'10px 24px', borderRadius:12, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.5)', fontWeight:700, cursor:'pointer', fontFamily:'monospace', marginBottom:8 }}>
+                    Back to swiping
+                  </button>
                 </>
               ) : (
                 <>
@@ -260,7 +291,7 @@ export default function BuyModal({ token, onClose, telegramId, walletAddress }) 
               <div style={{ fontSize:10, color:'rgba(255,255,255,0.25)', fontFamily:'monospace', marginBottom:20, wordBreak:'break-all', padding:'0 20px' }}>
                 Tx: {result?.signature?.slice(0,16)}...
               </div>
-              <button onClick={onClose}
+              <button onClick={() => onSuccess ? onSuccess({ nothing: false }) : onClose()}
                 style={{ padding:'12px 32px', borderRadius:14, background:`${token.accent}15`, border:`1px solid ${token.accent}40`, color:token.accent, fontWeight:700, cursor:'pointer', fontFamily:'JetBrains Mono, monospace', fontSize:13 }}>
                 Done — check Wallet tab
               </button>

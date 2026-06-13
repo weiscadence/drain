@@ -48,11 +48,42 @@ export function Confetti({ active }) {
   );
 }
 
+// ── CASH RAIN ─────────────────────────────────────────────
+function CashRain() {
+  const bills = Array.from({ length: 28 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 1.2,
+    dur: 1.2 + Math.random() * 1.0,
+    size: 28 + Math.random() * 22,
+    rotate: -25 + Math.random() * 50,
+    emoji: Math.random() > 0.3 ? '💵' : Math.random() > 0.5 ? '💴' : '💶',
+  }));
+  return (
+    <div style={{ position:'absolute', inset:0, overflow:'hidden', pointerEvents:'none', zIndex:0 }}>
+      {bills.map(b => (
+        <div key={b.id} style={{
+          position:'absolute',
+          left:`${b.left}%`,
+          top:'-60px',
+          fontSize: b.size,
+          transform:`rotate(${b.rotate}deg)`,
+          animation:`cashFall ${b.dur}s ${b.delay}s ease-in forwards`,
+          filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.5))',
+        }}>
+          {b.emoji}
+        </div>
+      ))}
+      <style>{`@keyframes cashFall{0%{transform:rotate(var(--r,0deg)) translateY(0);opacity:1}100%{transform:rotate(calc(var(--r,0deg) + 30deg)) translateY(115vh);opacity:0.6}}`}</style>
+    </div>
+  );
+}
+
 // ── APED IN CELEBRATION ───────────────────────────────────
 export function ApedIn({ show, onDone, tokenSymbol }) {
   useEffect(() => {
     if (!show) return;
-    const t = setTimeout(onDone, 2200);
+    const t = setTimeout(onDone, 2600);
     return () => clearTimeout(t);
   }, [show, onDone]);
 
@@ -61,31 +92,39 @@ export function ApedIn({ show, onDone, tokenSymbol }) {
     <div style={{
       position:'fixed', inset:0, zIndex:1200, pointerEvents:'none',
       display:'flex', alignItems:'center', justifyContent:'center',
-      background:'rgba(0,0,0,0.3)',
+      background:'rgba(0,0,0,0.72)',
+      backdropFilter:'blur(4px)',
     }}>
+      <CashRain />
       <div style={{
+        position:'relative', zIndex:1,
         textAlign:'center',
         animation:'apedInPop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards',
+        background:'rgba(0,0,0,0.55)',
+        borderRadius:24,
+        padding:'28px 40px',
+        border:'1px solid rgba(255,102,0,0.4)',
+        boxShadow:'0 0 60px rgba(255,102,0,0.3)',
       }}>
         <div style={{ fontSize:72, lineHeight:1, filter:'drop-shadow(0 0 30px #ff6600)' }}>🚀</div>
         <div style={{
-          fontSize:36, fontWeight:900, color:'#ff6600',
+          fontSize:40, fontWeight:900, color:'#ff6600',
           fontFamily:'JetBrains Mono, monospace',
           textShadow:'0 0 30px #ff660080, 0 0 60px #ff660040',
           letterSpacing:-1, marginTop:8,
         }}>APED IN!</div>
         <div style={{
           fontSize:16, color:'#fff', marginTop:6,
-          fontFamily:'monospace', opacity:0.9,
-          textShadow:'0 2px 10px rgba(0,0,0,0.8)',
-        }}>you bought ${tokenSymbol} like a legend fr fr</div>
+          fontFamily:'monospace', opacity:0.95,
+          textShadow:'0 2px 10px rgba(0,0,0,0.9)',
+        }}>{'you bought $' + tokenSymbol + ' like a legend fr fr'}</div>
+        <style>{`
+          @keyframes apedInPop {
+            0% { transform: scale(0.5) translateY(30px); opacity:0; }
+            100% { transform: scale(1) translateY(0); opacity:1; }
+          }
+        `}</style>
       </div>
-      <style>{`
-        @keyframes apedInPop {
-          0% { transform: scale(0.5) translateY(30px); opacity:0; }
-          100% { transform: scale(1) translateY(0); opacity:1; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -235,29 +274,15 @@ export function PositionEmoji({ pnlPct }) {
 }
 
 // ── LIVE PNL TICKER ───────────────────────────────────────
+// Shows real avg PnL across positions — no jitter, just the actual number
 export function PnlTicker({ positions }) {
-  const [displayPnl, setDisplayPnl] = useState(0);
-  const targetRef = useRef(0);
+  const totalPnl = (positions || []).reduce((acc, p) => acc + (p.pnlPct || 0), 0);
+  const avgPnl = positions?.length > 0 ? totalPnl / positions.length : null;
 
-  const totalPnl = positions.reduce((acc, p) => acc + (p.pnlPct || 0), 0);
-  const avgPnl = positions.length > 0 ? totalPnl / positions.length : 0;
+  // No positions = don't render
+  if (avgPnl === null) return null;
 
-  useEffect(() => {
-    targetRef.current = avgPnl;
-    const interval = setInterval(() => {
-      setDisplayPnl(prev => {
-        const diff = targetRef.current - prev;
-        const jitter = (Math.random() - 0.5) * 2; // live ticker wobble
-        if (Math.abs(diff) < 0.1) return targetRef.current + jitter * 0.5;
-        return prev + diff * 0.1 + jitter * 0.3;
-      });
-    }, 150);
-    return () => clearInterval(interval);
-  }, [avgPnl]);
-
-  if (!positions.length) return null;
-
-  const isUp = displayPnl >= 0;
+  const isUp = avgPnl >= 0;
   return (
     <div style={{
       display:'flex', alignItems:'center', gap:6,
@@ -271,12 +296,11 @@ export function PnlTicker({ positions }) {
         fontSize:12, fontWeight:800,
         fontFamily:'JetBrains Mono, monospace',
         color: isUp ? '#00ff88' : '#ff4444',
-        textShadow: `0 0 8px ${isUp ? '#00ff8880' : '#ff444480'}`,
-        minWidth:60,
+        minWidth:52,
       }}>
-        {isUp ? '+' : ''}{displayPnl.toFixed(1)}%
+        {isUp ? '+' : ''}{avgPnl.toFixed(1)}%
       </span>
-      <span style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>PnL</span>
+
     </div>
   );
 }

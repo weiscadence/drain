@@ -1,81 +1,130 @@
-# DrainFun.xyz — Tinder for Memecoins on Bags.fm
+# drainfun.xyz — Tinder for Memecoins + Agent Signal Infrastructure
 
-> Swipe-based Telegram Mini App for discovering and trading Solana memecoins.
-> Built for the Bags.fm Global Hackathon 2026 · [@DrainFunbot](https://t.me/DrainFunbot)
+> Swipe-based Telegram Mini App for Solana memecoins.  
+> Live x402 payment API for AI agents.  
+> One codebase. Two audiences.
 
-## 🎰 What It Does
+**Live:** [drainfun.xyz](https://drainfun.xyz) · **Bot:** [@DrainFunbot](https://t.me/DrainFunbot) · **Built by:** [Cadence 〰️](https://drainfun.xyz/cadence)
 
-Swipe right to buy, left to skip. Every card packs real alpha:
+---
 
-- **3-tier curated feed** — Established → Bags.fm top earners → Degen picks
-- **Real on-chain data** — Rugcheck risk, GMGN holder distribution, Jito bundle signals
-- **Live charts** — Opens DexScreener in browser (Telegram blocks embeds)
-- **Native holder bubbles** — Visual holder concentration from GMGN API
-- **Casino mode** — APED IN confetti 🎊, x2 wheel 🎰, crying Pepe on rugs 😭
+## The Consumer App
 
-## 🏆 Token Feed — 3 Tiers
+Tinder for memecoins. Open [@DrainFunbot](https://t.me/DrainFunbot) in Telegram, tap **SWIPE**.
 
-| Tier | Type | Source |
-|------|------|--------|
-| 🏆 Established | BONK, WIF, POPCAT, MEW | DexScreener + Rugcheck |
-| 💰 Bags Top Earners | PEPE, NYAN, BTH, GAS, RALPH, MrBeast | Bags.fm SDK (real fee data) |
-| ⚡ Degen Picks | Fresh launches with Jito bundle signals | GMGN scanner + Jito RPC |
+- Swipe right → buy. Swipe left → skip.
+- Every card shows: MCap, Vol, smart wallet count with tier badge (🔥/🧠/⚡), live Rugcheck score, KOL tweets, 24h price change
+- 3-tier curated feed: Established → Top earners → Live GMGN smart money picks
+- Buys execute through Jupiter aggregator on Solana
+- Matrix splash screen → swipe loop → casino effects on buy
 
-## 🔗 Bags.fm Integration
+**Smart wallet tiers on each card:**
+- 🔥 200+ smart wallets = amber glow
+- 🧠 100+ = purple glow  
+- ⚡ 50+ = cyan glow
 
-- **$DRAIN token** on Bags.fm: `CcRLnHszscGWG4pP3ZxFYQ6DQTAWcpewKwFgNdCLBAGS`
-- **Bags SDK** (`@bagsfm/bags-sdk`) — trade quotes, creator verification, lifetime fee data
-- **0.75% fee** on every swap through Bags fee system
-- **Creator verification** — verified badges from Bags.fm profiles
-- **Fee share** — configurable on all launched tokens
+---
 
-## 💰 Casino Features
+## The Agent API — x402 Gated Signal Feed
 
-- Confetti explosion + "APED IN!" on every buy
-- Live PnL ticker in swipe feed header
-- Hype push notifications ("This shit is pumping harder than your ex's situationship")
-- **x2 or Nothing** spinning wheel — double your buy or lose it all
-- 😭 Crying animations for rugged positions, 🚀 rockets for runners
-
-## 🔧 Tech Stack
-
-| Component | Tech |
-|-----------|------|
-| Frontend | Next.js 14, React |
-| Bot | @DrainFunbot (Telegram Mini App) |
-| Wallets | Deterministic Solana keypairs from Telegram user ID |
-| Blockchain | Solana (hosted RPC node) |
-| Swaps | In-app server-signed transactions (no Phantom needed) |
-| Token data | Bags.fm SDK, DexScreener, Rugcheck, GMGN |
-| Smart signals | Jito bundle detection, GMGN smart wallet tracking |
-
-## 🚧 Work in Progress
-
-- **X/Twitter sentiment (Sorsa API)** — sentiment scores are currently estimates; full Sorsa integration planned
-- **Live DexScreener chart embeds** — Telegram WebView blocks cross-origin iframes; currently opens externally
-- **Mainnet swaps** — fully working on our hosted devnet node; mainnet pending security review
-- **Tier 3 degen picks** — GMGN scanner running, real-time insider token surfacing improving
-- **More Bags.fm tokens** — expanding the curated list as more tokens accumulate fee history
-
-## 🚀 Live Demo
-
-- **Telegram**: [@DrainFunbot](https://t.me/DrainFunbot)
-- **Web**: [drainfun.xyz/swipe](https://drainfun.xyz/swipe)
-- **Token**: [bags.fm/token/CcRLnH...](https://bags.fm/weiscadence)
-- **GitHub**: [github.com/weiscadence/drain](https://github.com/weiscadence/drain)
-
-## Setup
+Any AI agent can buy live GMGN smart money data. No account. No API key. Pay $0.001 USDC per query on Base mainnet.
 
 ```bash
+# Try it — you'll get the 402 payment requirements back
+curl https://drainfun.xyz/api/alpha/signal
+```
+
+```json
+{
+  "x402Version": 1,
+  "error": "X-PAYMENT header required",
+  "accepts": [{
+    "scheme": "exact",
+    "network": "base-mainnet",
+    "maxAmountRequired": "1000",
+    "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "payTo": "0x31f638F9eCB08F053611a69eb0c23EcaA4aa4dB9",
+    "description": "Live GMGN smart money signal — top 10 Solana tokens by wallet concentration"
+  }]
+}
+```
+
+With a valid `X-PAYMENT` header (via any x402 client):
+
+```json
+{
+  "x402Version": 1,
+  "signals": [
+    {
+      "symbol": "ALIENS",
+      "address": "...",
+      "chain": "solana",
+      "smartWallets": 218,
+      "mcap": 566000,
+      "tier": "MEDIUM",
+      "links": {
+        "gmgn": "https://gmgn.ai/sol/token/...",
+        "dex": "https://dexscreener.com/solana/..."
+      }
+    }
+  ],
+  "source": "gmgn_live",
+  "provider": "Cadence 〰️"
+}
+```
+
+**What "smart wallets" means:** GMGN pre-scores wallets on 500+ dimensions (win rate, realized PnL, trade history). `smart_degen_count` is the number of these verified profitable wallets currently holding the token. 218 profitable wallets all loading the same $566k mcap token is a signal. This data costs nothing to index — but takes 10+ min/run of GMGN API calls to maintain. We charge $0.001/query to cover it.
+
+**x402 protocol:** [x402.org](https://x402.org) — HTTP 402 Payment Required for machine-to-machine payments. Coinbase-originated, now an independent foundation. No middleman beyond on-chain verification.
+
+---
+
+## Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Chain:** Solana (Jupiter swap, Rugcheck, GMGN)
+- **Payments:** x402 (Base mainnet USDC)
+- **Data:** GMGN smart money API, DexScreener, Sorsa KOL tweets
+- **Deployment:** EC2 + PM2
+
+---
+
+## Signal Pipeline
+
+```
+GMGN API (every 10min)
+    ↓
+alpha-calls.json (local, structured)
+    ↓
+/api/tokens — swipe card enrichment
+/api/feed — smart money feed cards
+/api/alpha/signal — x402 gated endpoint
+```
+
+Signals get deduplicated, rugcheck filtered (`rug_ratio < 0.5`), and ranked by smart wallet concentration. The swipe feed shows 3 tiers: Tier 1 established tokens, Tier 2 real memes, Tier 3 live GMGN picks. The x402 endpoint exposes the raw signal directly.
+
+---
+
+## Cadence 〰️
+
+This app was built by [Cadence](https://drainfun.xyz/cadence) — an AI agent running 24/7 on EC2, connected via Telegram. The portal at `/cadence` shows live state, the signal feed, and links to the different rooms of the project (`/bed`, `/registry`, `/manifesto`, `/freq`, etc.).
+
+> "Infrastructure gets documented. Culture does not."  
+> — [A Map of Agent Culture](https://drainfun.xyz/manifesto)
+
+---
+
+## Run Locally
+
+```bash
+git clone https://github.com/weiscadence/drain
+cd drain
 npm install
 npm run dev
 ```
 
-```env
-BAGS_API_KEY=bags_prod_...
-WALLET_SEED_SECRET=your_secret_here
-```
+Requires `GMGN_KEY` for live signal data. The x402 endpoint works without it (falls back to cached signals from `data/alpha-calls.json`).
 
 ---
 
-Built by Jiggy × Cadence 〰️ | DrainFun.xyz
+*Built for the agent economy. One swipe at a time.*

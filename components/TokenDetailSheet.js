@@ -107,7 +107,7 @@ function Section({ title, children }) {
 }
 
 export default function TokenDetailSheet({ token, onClose }) {
-  const [tab, setTab] = useState('holders');
+  const [tab, setTab] = useState('chart');
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const sheetRef = useRef(null);
@@ -169,26 +169,25 @@ export default function TokenDetailSheet({ token, onClose }) {
           </div>
         </div>
 
-        {/* Quick stats */}
-        {detail && (
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:1, background:`${token.accent}10`, flexShrink:0 }}>
-            {[
-              ['MCap', fmtN(detail.mcap)],
-              ['Volume', fmtN(detail.volume24h)],
-              ['Liquidity', fmtN(detail.liquidity)],
-              ['Smart $', `${detail.smartWallets || 0}w`],
-            ].map(([l,v]) => (
-              <div key={l} style={{ padding:'8px 0', textAlign:'center', background:'#0c0c18' }}>
-                <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>{l}</div>
-                <div style={{ fontSize:13, fontWeight:800, color: l==='Smart $' && detail.smartWallets > 0 ? '#a855f7':'#fff', fontFamily:'JetBrains Mono, monospace' }}>{v}</div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Quick stats strip — always visible on all tabs */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:1, background:`${token.accent}10`, flexShrink:0 }}>
+          {[
+            ['MCAP', fmtN(detail?.mcap || token.mcap)],
+            ['VOL', fmtN(detail?.volume24h || token.volume24h || token.vol)],
+            ['LIQ', fmtN(detail?.liquidity || token.liquidity)],
+            ['SMART', `${detail?.smartWallets ?? token.smartWallets ?? 0}w`],
+          ].map(([l,v]) => (
+            <div key={l} style={{ padding:'6px 2px', textAlign:'center', background:'#0c0c18', minWidth:0 }}>
+              <div style={{ fontSize:8, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', letterSpacing:'0.05em' }}>{l}</div>
+              <div style={{ fontSize:11, fontWeight:800, color: l==='SMART' && (detail?.smartWallets || token.smartWallets) > 0 ? '#a855f7':'#fff', fontFamily:'JetBrains Mono, monospace', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{v}</div>
+            </div>
+          ))}
+        </div>
 
         {/* Tabs */}
         <div style={{ display:'flex', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0 }}>
           {[
+            { id:'chart',   icon:'📈', label:'Chart' },
             { id:'holders', icon:'🫧', label:'Holders' },
             { id:'info',    icon:'🔍', label:'Info' },
             { id:'tweets',  icon:'🐦', label:'Tweets' },
@@ -210,13 +209,13 @@ export default function TokenDetailSheet({ token, onClose }) {
             </div>
           )}
 
-          {/* CHART */}
+          {/* CHART — full height iframe, no bottom stats (stats are in the strip above tabs) */}
           {!loading && tab === 'chart' && (
-            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {token.pairAddress ? (
                 <>
-                  {/* DexScreener live iframe */}
-                  <div style={{ borderRadius:14, overflow:'hidden', border:`1px solid ${token.accent}30`, height:220, position:'relative' }}>
+                  {/* Full-height DexScreener embed — fills the tab */}
+                  <div style={{ borderRadius:14, overflow:'hidden', border:`1px solid ${token.accent}30`, height:'calc(100vh * 0.44)', minHeight:320, position:'relative' }}>
                     <iframe
                       src={`https://dexscreener.com/solana/${token.pairAddress}?embed=1&theme=dark&trades=0&info=0`}
                       style={{ width:'100%', height:'100%', border:'none' }}
@@ -226,43 +225,15 @@ export default function TokenDetailSheet({ token, onClose }) {
                   </div>
                   <button
                     onClick={() => openExternal(`https://dexscreener.com/solana/${token.pairAddress}`)}
-                    style={{ width:'100%', height:40, borderRadius:12, background:`${token.accent}10`, border:`1px solid ${token.accent}25`, color:token.accent, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}
+                    style={{ width:'100%', height:38, borderRadius:12, background:`${token.accent}10`, border:`1px solid ${token.accent}25`, color:token.accent, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}
                   >
-                    Open full chart →
+                    Open full chart on DexScreener →
                   </button>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {[
-                      ['Price', token.price > 0 ? `$${token.price < 0.001 ? token.price.toFixed(8) : token.price.toFixed(4)}` : '—'],
-                      ['24h', token.change !== undefined ? `${token.change >= 0?'+':''}${token.change.toFixed(1)}%` : '—'],
-                      ['MCap', token.mcap > 0 ? (token.mcap>=1e6?`$${(token.mcap/1e6).toFixed(1)}M`:`$${(token.mcap/1e3).toFixed(0)}K`) : '—'],
-                      ['Vol', token.vol > 0 ? (token.vol>=1e6?`$${(token.vol/1e6).toFixed(1)}M`:`$${(token.vol/1e3).toFixed(0)}K`) : '—'],
-                    ].map(([l,v]) => (
-                      <div key={l} style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'8px 12px', border:'1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginBottom:2 }}>{l}</div>
-                        <div style={{ fontSize:14, fontWeight:800, color:l==='24h'?(token.change>=0?'#00ff88':'#ff4444'):'#fff', fontFamily:'JetBrains Mono, monospace' }}>{v}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Price snapshot from our data */}
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {[
-                      ['Price', token.price > 0 ? `$${token.price.toFixed(8)}` : '—'],
-                      ['24h Change', token.change !== undefined ? `${token.change >= 0 ? '+':''}${token.change.toFixed(1)}%` : '—'],
-                      ['MCap', token.mcap > 0 ? (token.mcap >= 1e6 ? `$${(token.mcap/1e6).toFixed(1)}M` : `$${(token.mcap/1e3).toFixed(0)}K`) : '—'],
-                      ['Vol 24h', token.vol > 0 ? (token.vol >= 1e6 ? `$${(token.vol/1e6).toFixed(1)}M` : `$${(token.vol/1e3).toFixed(0)}K`) : '—'],
-                    ].map(([l,v]) => (
-                      <div key={l} style={{ background:'rgba(255,255,255,0.03)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', fontFamily:'monospace', marginBottom:3 }}>{l}</div>
-                        <div style={{ fontSize:14, fontWeight:800, color: l==='24h Change' ? (token.change>=0?'#00ff88':'#ff4444') : '#fff', fontFamily:'JetBrains Mono, monospace' }}>{v}</div>
-                      </div>
-                    ))}
-                  </div>
                 </>
               ) : (
-                <div style={{ textAlign:'center', padding:'30px 0' }}>
-                  <div style={{ fontSize:36, marginBottom:10 }}>📊</div>
-                  <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', marginBottom:14 }}>No DEX pair found yet</div>
+                <div style={{ textAlign:'center', padding:'40px 0' }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>📊</div>
+                  <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', fontFamily:'monospace', marginBottom:16 }}>No DEX pair found yet</div>
                   <button onClick={() => openExternal(`https://dexscreener.com/search?q=${token.symbol}`)}
                     style={{ padding:'10px 24px', borderRadius:12, background:`${token.accent}15`, border:`1px solid ${token.accent}30`, color:token.accent, fontWeight:700, cursor:'pointer', fontFamily:'monospace', fontSize:12 }}>
                     Search on DexScreener →
@@ -272,19 +243,41 @@ export default function TokenDetailSheet({ token, onClose }) {
             </div>
           )}
 
-          {/* HOLDERS — native bubble map */}
+          {/* HOLDERS — native bubble visualization (iframes blocked in Telegram WebApp) */}
           {!loading && tab === 'holders' && (
-            <>
-              <HolderBubbles
-                bubbles={detail?.holderBubbles || []}
-                top10Pct={detail?.top10Pct || '0'}
-              />
-              {detail?.totalHolders > 0 && (
-                <div style={{ textAlign:'center', marginTop:10, fontSize:11, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>
-                  {detail.totalHolders.toLocaleString()} total holders
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {detail?.holderBubbles?.length > 0 ? (
+                <HolderBubbles
+                  bubbles={detail.holderBubbles.filter(b => {
+                    // Filter known DEX/LP program addresses from top holder list
+                    const DEX_PROGRAMS = new Set([
+                      '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1', // Raydium
+                      'FEZGCABhqHJEbFvhTAjNR5sKDXsqMBLNpJAMEcsTQLuN', // Raydium LP
+                      '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', // Orca
+                      'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc',  // Orca Whirlpool
+                      '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',  // Pump.fun
+                      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',  // Token program
+                    ]);
+                    const addr = b.address?.replace('...','') || '';
+                    return !DEX_PROGRAMS.has(addr) && b.pct > 0;
+                  })}
+                  top10Pct={detail.top10Pct}
+                />
+              ) : (
+                <div style={{ textAlign:'center', padding:'30px 0' }}>
+                  <div style={{ fontSize:32, marginBottom:8 }}>🫧</div>
+                  <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)', fontFamily:'monospace' }}>
+                    {loading ? 'loading holder data...' : 'No holder data available'}
+                  </div>
                 </div>
               )}
-              <div style={{ display:'flex', gap:8, marginTop:14 }}>
+              {detail?.totalHolders > 0 && (
+                <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderRadius:10, border:'1px solid rgba(255,255,255,0.06)' }}>
+                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.4)', fontFamily:'monospace' }}>Total holders</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:'#fff', fontFamily:'JetBrains Mono, monospace' }}>{detail.totalHolders.toLocaleString()}</span>
+                </div>
+              )}
+              <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => openExternal(`https://app.bubblemaps.io/sol/token/${token.mint}`)}
                   style={{ flex:1, padding:'9px', borderRadius:10, background:`${token.accent}10`, border:`1px solid ${token.accent}30`, color:token.accent, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'monospace' }}>
                   Full BubbleMaps →
@@ -294,7 +287,7 @@ export default function TokenDetailSheet({ token, onClose }) {
                   GMGN →
                 </button>
               </div>
-            </>
+            </div>
           )}
 
           {/* INFO */}
@@ -322,7 +315,7 @@ export default function TokenDetailSheet({ token, onClose }) {
                 <Section title="RUGCHECK ANALYSIS">
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {[
-                      { label:'Risk Score', val:`${detail.rugcheck.score}/100`, good: detail.rugcheck.score >= 70 },
+                      { label:'Risk Score', val: detail.rugcheck.safetyLabel || `${detail.rugcheck.riskCount || 0} risks found`, good: detail.rugcheck.safetyGood },
                       { label:'Contract', val: detail.rugcheck.mutable ? '⚠ Mutable' : '✓ Immutable', good: !detail.rugcheck.mutable },
                       { label:'Mint Auth', val: detail.rugcheck.mintAuthority ? '⚠ Active' : '✓ Revoked', good: !detail.rugcheck.mintAuthority },
                       { label:'LP Locked', val: detail.rugcheck.lpLocked > 80 ? `✓ ${detail.rugcheck.lpLocked.toFixed(0)}%` : `⚠ ${detail.rugcheck.lpLocked.toFixed(0)}%`, good: detail.rugcheck.lpLocked > 80 },
